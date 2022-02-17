@@ -1,0 +1,136 @@
+#include <iostream>
+#include <time.h>
+
+#include "Engine.h"
+#include "maths/Maths.h"
+#include "geom/AABB2D.h"
+using namespace displib;
+
+struct voronoiPt {
+	float x, y, vx, vy;
+
+	void update(float dt) {
+		//euler explicit integ.
+		x+=vx*dt;
+		y+=vy*dt;
+	}
+
+	void checkAABB(AABB2D a) {
+		//bounds detection and bounce
+		if (x<a.min.x) {
+			x=a.min.x;
+			vx*=-1.0f;
+		}
+		if (y<a.min.y) {
+			y=a.min.y;
+			vy*=-1.0f;
+		}
+		if (x>a.max.x) {
+			x=a.max.x;
+			vx*=-1.0f;
+		}
+		if (y>a.max.y) {
+			y=a.max.y;
+			vy*=-1.0f;
+		}
+	}
+};
+
+class Demo : public Engine {
+	public:
+	int num=26;
+	voronoiPt* vnPts={};
+	AABB2D bounds;
+
+	void setup() override {
+		vnPts=new voronoiPt[num];
+		//put randomly on screen
+		for (int i=0; i<num; i++) {
+			float x=Maths::random(0, width);
+			float y=Maths::random(0, height);
+			float angle=Maths::random(-Maths::PI, Maths::PI);
+			float spd=Maths::random(5, 11);
+			V2D vel=V2D::fromAngle(angle)*spd;
+			vnPts[i]={x, y, vel.x, vel.y};
+		}
+
+		bounds=AABB2D(0, 0, width, height);
+	}
+
+	void update(float dt) override {
+		//update all
+		for (int i=0; i<num; i++) {
+			vnPts[i].update(dt);
+			vnPts[i].checkAABB(bounds);
+		}
+	}
+
+	void draw(Raster& rst) override {
+		//background
+		rst.setChar(32);
+		rst.fillRect(0, 0, width, height);
+
+		//screen sized "2d" array
+		int* grid=new int[width*height];
+		//for every pixel
+		for (int x=0; x<width; x++) {
+			for (int y=0; y<height; y++) {
+				//sorting
+				float record=INFINITY;
+				int closestIx=-1;
+				//find closest pt
+				for (int i=0; i<num; i++) {
+					float dx=x-vnPts[i].x;
+					float dy=y-vnPts[i].y;
+					float ds=dx*dx+dy*dy;
+					if (ds<record) {
+						record=ds;
+						closestIx=i;
+					}
+				}
+				//store index of closest pt
+				grid[x+y*width]=closestIx;
+			}
+		}
+
+		//show grid??
+		for (int x=0; x<width; x++) {
+			for (int y=0; y<height; y++) {
+				int curr=grid[x+y*width];
+				//set char to a and on
+				rst.setChar(97+curr);
+				rst.putPixel(x, y);
+			}
+		}
+
+		//edge detection
+		rst.setChar(32);
+		for (int x=0; x<width; x++) {
+			for (int y=0; y<height; y++) {
+				bool diff=false;
+				int curr=grid[x+y*width];
+				if (x>1) diff|=(curr!=grid[x-1+y*width]);//left or
+				if (y>1) diff|=(curr!=grid[x+y*width-width]);//up or
+				if (x<width-2) diff|=(curr!=grid[x+1+y*width]);//right or
+				if (y<height-2) diff|=(curr!=grid[x+y*width+width]);//down
+				if (diff) rst.putPixel(x, y);
+			}
+		}
+		delete[] grid;
+
+		//show fps
+		rst.setChar(' ');
+		rst.fillRect(0, 0, 10, 2);
+		rst.drawString(0, 0, "FPS: "+std::to_string((int)fps));
+	}
+};
+
+int main() {
+	srand(time(NULL));
+
+	//init custom graphics engine
+	Demo d=Demo();
+	d.start(12, 12, true);
+
+	return 0;
+}
