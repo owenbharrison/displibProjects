@@ -1,5 +1,6 @@
 # displibProjects
-this is some of my recent cpp projects using my cpp console graphics engine displib
-NOT TO BE CONFUSED WITH MY JAVA displib, which this is a "port" of but in cpp console.
+These are some of my Visual Studio 2022 "simulations" that i have been working on as of late. They all use a graphics engine, called displib.
+This cpp version of displib is not to be confused with my Java Game Engine, this is somewhat of a port of that in C++.
+This is similar in that it has simple drawing and display mechanics, and the inspirations are the Processing Foundation and javidx9's olc::ConsoleGameEngine.
 
-this has some simulation type projects in it to increase my knowledge of physics and coding.
+This repository has the code of the "simulations" that I have been working on, and a release tag to run the executables in Windows.
