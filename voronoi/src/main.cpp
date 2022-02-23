@@ -93,7 +93,7 @@ class Demo : public Engine {
 			}
 		}
 
-		//show grid??
+		//show "cells"
 		for (int x=0; x<width; x++) {
 			for (int y=0; y<height; y++) {
 				int curr=grid[x+y*width];

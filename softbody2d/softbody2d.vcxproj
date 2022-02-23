@@ -21,8 +21,8 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{bff2a641-5be2-4fae-80b3-f03595c420c9}</ProjectGuid>
-    <RootNamespace>particlesys</RootNamespace>
+    <ProjectGuid>{f825bc11-c424-421e-bc67-2a14e9185de8}</ProjectGuid>
+    <RootNamespace>softbody2d</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />

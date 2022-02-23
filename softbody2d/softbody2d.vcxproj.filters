@@ -18,18 +18,24 @@
     <ClCompile Include="src\main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Spring.cpp">
+    <ClCompile Include="src\Particle.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Particle.cpp">
+    <ClCompile Include="src\Softbody.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Spring.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\Spring.h">
+    <ClInclude Include="src\Particle.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Particle.h">
+    <ClInclude Include="src\Softbody.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Spring.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
