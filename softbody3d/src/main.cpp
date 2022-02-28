@@ -7,7 +7,10 @@
 using namespace displib;
 
 V2D projV3D(V3D v, float yaw, float pitch, float zoom) {
-	return V2D(sinf(yaw)*v.x-cosf(yaw)*v.z, (cosf(yaw)*v.x+sinf(yaw)*v.z)*cosf(pitch)+sinf(pitch)*v.y)*zoom;
+	return V2D(
+		sinf(yaw)*v.x-cosf(yaw)*v.z,
+		(cosf(yaw)*v.x+sinf(yaw)*v.z)*cosf(pitch)+sinf(pitch)*v.y
+	)*zoom;
 }
 
 //for some pemdas reason, this cant be a preprocessor define.
@@ -26,7 +29,6 @@ class Demo : public Engine {
 	Spring* springs={};
 	float camYaw=2.074755f, camPitch=-1.060102f;
 	float camZoom=1;
-	int totalDiagNum;
 
 	void setup() override {
 		grav=V3D(0, -21.0f, 0);
@@ -96,7 +98,6 @@ class Demo : public Engine {
 			}
 		}
 		//total diags
-		totalDiagNum=k-1;
 		for (int x=0; x<w-1; x++) {
 			for (int y=0; y<h-1; y++) {
 				for (int z=0; z<d-1; z++) {
@@ -137,7 +138,7 @@ class Demo : public Engine {
 		//softbody updating
 
 		//update springs first
-		for (int i=0; i<totalDiagNum; i++) {
+		for (int i=0; i<springNum; i++) {
 			springs[i].update();
 		}
 
