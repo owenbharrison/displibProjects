@@ -17,7 +17,7 @@ V2D absv(V2D v) {
 	return V2D(abs(v.x), abs(v.y));
 }
 
-struct tri{
+struct tri {
 	V2D a, b, c;
 
 	float signedDist(V2D pt) {//from inigo quilez
@@ -99,6 +99,7 @@ class Demo : public Engine {
 
 		//actual "raymarching":
 		rst.setChar('.');
+		rst.setColor(Raster::CYAN);
 		V2D mouseVec=V2D(mouseX, mouseY);
 		V2D checkPt=mouseVec;
 		V2D dir=V2D::fromAngle(angle);
@@ -121,21 +122,26 @@ class Demo : public Engine {
 			checkPt+=dir*sceneDist;
 		}
 		//draw line to final pt
+		rst.setChar('#');
+		rst.setColor(Raster::RED);
 		rst.drawLine(mouseVec.x, mouseVec.y, checkPt.x, checkPt.y);
 
-		//draw final pt
-		rst.setChar('@');
-		rst.fillRect(checkPt.x-1, checkPt.y-1, 3, 3);
-
 		//show REAL shapes
-		rst.setChar('#');
+		rst.setChar('@');
+		rst.setColor(Raster::GREEN);
 		t.render(rst);
 		c.render(rst);
 		r.render(rst);
 
+		//draw final pt
+		rst.setChar('p');
+		rst.setColor(Raster::WHITE);
+		rst.fillRect(checkPt.x-1, checkPt.y-1, 3, 3);
+
 		//show fps
 		rst.setChar(' ');
 		rst.fillRect(0, 0, 10, 2);
+		rst.setColor(Raster::WHITE);
 		rst.drawString(0, 0, "FPS: "+std::to_string((int)fps));
 	}
 };
