@@ -50,7 +50,7 @@ void Particle::constrainOut(AABB2D a) {
 		float dny=abs(a.min.y-this->pos.y);
 		float dmx=abs(a.max.x-this->pos.x);
 		float dmy=abs(a.max.y-this->pos.y);
-		float cl=std::min(dnx, std::min(dny, std::min(dmx, dmy)));
+		float cl=min(dnx, min(dny, min(dmx, dmy)));
 		if (cl==dnx) {
 			this->pos.x=a.min.x;
 				this->vel.x*=-1.0f;

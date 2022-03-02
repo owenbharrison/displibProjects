@@ -1,8 +1,7 @@
-#pragma once
-
 #include <string>
 
 namespace displib {
+#pragma once
 	class V2D {
 		public:
 		float x, y;

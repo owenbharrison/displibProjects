@@ -1,8 +1,6 @@
-#include <iostream>
 #include <time.h>
 
 #include "Engine.h"
-#include "maths/Maths.h"
 #include "geom/Poly2D.h"
 using namespace displib;
 
@@ -37,20 +35,23 @@ class Demo : public Engine {
 
 	void draw(Raster& rst) override {
 		//background
-		rst.setChar(32);
+		rst.setChar(' ');
 		rst.fillRect(0, 0, width, height);
 
 		//show poly bounds
-		rst.setChar(46);
+		rst.setChar('.');
+		rst.setColor(Raster::CYAN);
 		poly.getAABB().render(rst);
 
 		//show poly
-		rst.setChar(64);
+		rst.setChar('@');
+		rst.setColor(Raster::MAGENTA);
 		poly.render(rst);
 
 		//show fps
-		rst.setChar(32);
+		rst.setChar(' ');
 		rst.fillRect(0, 0, 10, 2);
+		rst.setColor(Raster::WHITE);
 		rst.drawString(0, 0, "FPS: "+std::to_string((int)fps));
 	}
 };

@@ -1,21 +1,42 @@
-#pragma once
-
+#include <windows.h>
 #include <string>
 
 namespace displib {
+#pragma once
 	class Raster {
 		private:
-		wchar_t* charBuffer;
-		wchar_t currChar;
+		CHAR_INFO* charBuffer;
+		CHAR_INFO currChar;
 
 		public:
+		enum __COLORS__ {
+			BLACK=0x0000,
+			DARK_BLUE=0x0001,
+			DARK_GREEN=0x0002,
+			DARK_CYAN=0x0003,
+			DARK_RED=0x0004,
+			DARK_MAGENTA=0x0005,
+			DARK_YELLOW=0x0006,
+			GREY=0x0007,
+			DARK_GREY=0x0008,
+			BLUE=0x0009,
+			GREEN=0x000A,
+			CYAN=0x000B,
+			RED=0x000C,
+			MAGENTA=0x000D,
+			YELLOW=0x000E,
+			WHITE=0x000F
+		};
+
 		int width, height;
 
 		Raster();//dont use
 
 		Raster(int w, int h);
 
-		void setChar(int c);
+		void setChar(short c);
+
+		void setColor(short c);
 
 		void putPixel(int x, int y);
 
@@ -32,6 +53,6 @@ namespace displib {
 
 		void drawString(int x_, int y, std::string str);
 
-		wchar_t* getBuffer();
+		CHAR_INFO* getBuffer();
 	};
 }

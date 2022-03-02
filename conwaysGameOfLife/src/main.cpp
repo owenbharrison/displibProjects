@@ -1,4 +1,3 @@
-#include <iostream>
 #include <time.h>
 
 #include "Engine.h"

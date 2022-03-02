@@ -19,7 +19,7 @@ struct circle {
 		if (this->getAABB().overlapAABB(other.getAABB())) {//broad phase opt
 			V2D sub=this->pos-other.pos;
 			float mag=sub.mag();
-			if (mag+1.0f<this->rad+other.rad) return true;
+			if (mag<this->rad+other.rad) return true;
 		}
 		return false;
 	}
@@ -31,10 +31,6 @@ struct circle {
 			if (mag<this->rad) return true;
 		}
 		return false;
-	}
-
-	void render(Raster& rst) {
-		rst.drawCircle(pos.x, pos.y, rad);
 	}
 };
 
@@ -98,17 +94,19 @@ class Demo : public Engine {
 	}
 
 	void draw(Raster& rst) override {
-		rst.setChar(32);
+		rst.setChar(' ');
 		rst.fillRect(0, 0, width, height);
 
-		rst.setChar(35);
+		rst.setChar('#');
 		for (auto& c:circles) {
-			c.render(rst);
+			//color green if growing, red else
+			rst.setColor(c.growing?Raster::GREEN:Raster::RED);
+			rst.drawCircle(c.pos.x, c.pos.y, c.rad);
 		}
 
-		rst.setChar(32);
+		rst.setChar(' ');
 		rst.fillRect(0, 0, 12, 2);
-
+		rst.setColor(Raster::WHITE);
 		rst.drawString(0, 0, "FPS: "+std::to_string((int)fps));
 	}
 };

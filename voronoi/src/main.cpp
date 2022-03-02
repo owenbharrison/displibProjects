@@ -1,4 +1,3 @@
-#include <iostream>
 #include <time.h>
 
 #include "Engine.h"
@@ -38,7 +37,7 @@ struct voronoiPt {
 
 class Demo : public Engine {
 	public:
-	int num=26;
+	int num=16;
 	voronoiPt* vnPts={};
 	AABB2D bounds;
 
@@ -67,7 +66,7 @@ class Demo : public Engine {
 
 	void draw(Raster& rst) override {
 		//background
-		rst.setChar(32);
+		rst.setChar(' ');
 		rst.fillRect(0, 0, width, height);
 
 		//screen sized "2d" array
@@ -96,19 +95,21 @@ class Demo : public Engine {
 		//show "cells"
 		for (int x=0; x<width; x++) {
 			for (int y=0; y<height; y++) {
-				int curr=grid[x+y*width];
-				//set char to a and on
-				rst.setChar(97+curr);
+				//set char to a-z weird pattern
+				rst.setChar(97+(x+y)%26);
+				//color each cell accordingly
+				rst.setColor(grid[x+y*width]);
 				rst.putPixel(x, y);
 			}
 		}
 
 		//edge detection
-		rst.setChar(32);
+		rst.setChar(' ');
 		for (int x=0; x<width; x++) {
 			for (int y=0; y<height; y++) {
 				bool diff=false;
 				int curr=grid[x+y*width];
+				//"highlight" any differences between pixels
 				if (x>1) diff|=(curr!=grid[x-1+y*width]);//left or
 				if (y>1) diff|=(curr!=grid[x+y*width-width]);//up or
 				if (x<width-2) diff|=(curr!=grid[x+1+y*width]);//right or
@@ -121,6 +122,7 @@ class Demo : public Engine {
 		//show fps
 		rst.setChar(' ');
 		rst.fillRect(0, 0, 10, 2);
+		rst.setChar(Raster::WHITE);
 		rst.drawString(0, 0, "FPS: "+std::to_string((int)fps));
 	}
 };

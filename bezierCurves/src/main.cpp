@@ -1,4 +1,3 @@
-#include <iostream>
 #include <time.h>
 #include <vector>
 
@@ -35,7 +34,7 @@ class Demo : public Engine {
 	}
 
 	void update(float dt) override {
-		//every so often, reset
+		//every so often, reset the "sim".
 		if (timer>7.5) {
 			setup();
 			timer=0;
@@ -46,11 +45,12 @@ class Demo : public Engine {
 
 	void draw(Raster& rst) override {
 		//background
-		rst.setChar(32);
+		rst.setChar(' ');
 		rst.fillRect(0, 0, width, height);
 
 		//draw base lines
 		rst.setChar('.');
+		rst.setColor(Raster::RED);
 		rst.drawLine(p0.x, p0.y, p1.x, p1.y);
 		rst.drawLine(p1.x, p1.y, p2.x, p2.y);
 		rst.drawLine(p2.x, p2.y, p3.x, p3.y);
@@ -60,16 +60,19 @@ class Demo : public Engine {
 		V2D lp0=lerp(p0, p1, t);
 		V2D lp1=lerp(p1, p2, t);
 		V2D lp2=lerp(p2, p3, t);
+		rst.setColor(Raster::YELLOW);
 		rst.drawLine(lp0.x, lp0.y, lp1.x, lp1.y);
 		rst.drawLine(lp1.x, lp1.y, lp2.x, lp2.y);
 
 		//draw second lerp
 		V2D llp0=lerp(lp0, lp1, t);
 		V2D llp1=lerp(lp1, lp2, t);
+		rst.setColor(Raster::GREEN);
 		rst.drawLine(llp0.x, llp0.y, llp1.x, llp1.y);
 
-		//draw "final" pt
-		rst.setChar('@');
+		//draw trail
+		rst.setChar('#');
+		rst.setColor(Raster::CYAN);
 		V2D finalPt=lerp(llp0, llp1, t);
 		int num=trail.size();
 		if (num>1) {
@@ -79,20 +82,24 @@ class Demo : public Engine {
 				rst.drawLine(a.x, a.y, b.x, b.y);
 			}
 		}
+		//update trail, make sure it is not too long
 		trail.push_back(finalPt);
 		if (num>fps*2) {
 			trail.erase(trail.begin());
 		}
 
 		//draw pts
-		rst.fillRect(p0.x-1, p0.y, 3, 3);
-		rst.fillRect(p1.x-1, p1.y, 3, 3);
-		rst.fillRect(p2.x-1, p2.y, 3, 3);
-		rst.fillRect(p3.x-1, p3.y, 3, 3);
+		rst.setChar('@');
+		rst.setColor(Raster::WHITE);
+		rst.putPixel(p0.x, p0.y);
+		rst.putPixel(p1.x, p1.y);
+		rst.putPixel(p2.x, p2.y);
+		rst.putPixel(p3.x, p3.y);
 
 		//show fps
 		rst.setChar(' ');
 		rst.fillRect(0, 0, 10, 3);
+		rst.setColor(Raster::WHITE);
 		rst.drawString(0, 0, "FPS: "+std::to_string((int)fps));
 	}
 };

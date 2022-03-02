@@ -1,7 +1,7 @@
-#pragma once
 #include "vector/V2D.h"
 
 namespace displib {
+#pragma once
 	class Maths {
 		private:
 		Maths();

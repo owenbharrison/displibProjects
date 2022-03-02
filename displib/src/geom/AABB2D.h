@@ -1,9 +1,8 @@
-#pragma once
-
 #include "../maths/vector/V2D.h"
 #include "../io/Raster.h"
 
 namespace displib {
+#pragma once
 	class AABB2D {
 		public:
 		V2D min, max;

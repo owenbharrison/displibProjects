@@ -42,10 +42,10 @@ namespace displib {
 		float my=-INFINITY;
 		for (int i=0; i<this->numPts; i++) {//sort
 			V2D pt=this->points[i];
-			nx=std::min(nx, pt.x);
-			ny=std::min(ny, pt.y);
-			mx=std::max(mx, pt.x);
-			my=std::max(my, pt.y);
+			nx=min(nx, pt.x);
+			ny=min(ny, pt.y);
+			mx=max(mx, pt.x);
+			my=max(my, pt.y);
 		}
 		return AABB2D(nx, ny, mx, my);
 	}

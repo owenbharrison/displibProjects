@@ -8,13 +8,18 @@ namespace displib {
 		this->height=h;
 
 		//screen bfr
-		this->charBuffer=new wchar_t[this->width*this->height];
+		this->charBuffer=new CHAR_INFO[this->width*this->height];
 
 		//set default char to space
-		this->currChar=32;
+		this->setChar(32);
+
+		//set default color to white
+		this->setColor(WHITE);
 	}
 
-	void Raster::setChar(int c) { this->currChar=c; }
+	void Raster::setChar(short c) { this->currChar.Char.UnicodeChar=c; }
+
+	void Raster::setColor(short c) { this->currChar.Attributes=c; }
 
 	void Raster::putPixel(int x, int y) {
 		if (x>=0&&x<this->width) {//in range of x
@@ -265,7 +270,7 @@ namespace displib {
 
 	void Raster::drawString(int x_, int y, std::string str) {
 		int x=x_;
-		wchar_t cCh=this->currChar;
+		wchar_t cCh=this->currChar.Char.UnicodeChar;
 		for (auto ch:str) {
 			this->setChar(ch);
 			this->putPixel(x, y);
@@ -274,7 +279,7 @@ namespace displib {
 		this->setChar(cCh);
 	}
 
-	wchar_t* Raster::getBuffer() {
+	CHAR_INFO* Raster::getBuffer() {
 		return this->charBuffer;
 	}
 }

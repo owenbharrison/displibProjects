@@ -1,10 +1,9 @@
-#pragma once
-
 #include "../maths/Maths.h"
 #include "../maths/vector/V2D.h"
 #include "../geom/AABB2D.h"
 
 namespace displib {
+#pragma once
 	class Poly2D {
 		public:
 		V2D pos;

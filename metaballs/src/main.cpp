@@ -68,7 +68,7 @@ class Demo : public Engine {
 
 	void draw(Raster& rst) override {
 		//background
-		rst.setChar(32);
+		rst.setChar(' ');
 		rst.fillRect(0, 0, width, height);
 
 		//metaball method
@@ -95,7 +95,8 @@ class Demo : public Engine {
 		}
 
 		//edge detection
-		rst.setChar(35);
+		rst.setChar('#');
+		rst.setColor(Raster::GREEN);
 		for (int x=0; x<width; x++) {
 			for (int y=0; y<height; y++) {
 				bool diff=false;
@@ -109,9 +110,17 @@ class Demo : public Engine {
 		}
 		delete[] grid;
 
+		//show "ball" positions
+		rst.setColor(Raster::CYAN);
+		for (int i=0; i<num; i++) {
+			Metaball& m=metaballs[i];
+			rst.putPixel(m.pos.x, m.pos.y);
+		}
+
 		//show fps
-		rst.setChar(32);
+		rst.setChar(' ');
 		rst.fillRect(0, 0, 10, 2);
+		rst.setColor(Raster::WHITE);
 		rst.drawString(0, 0, "FPS: "+std::to_string((int)fps));
 	}
 

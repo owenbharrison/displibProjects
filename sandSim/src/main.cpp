@@ -109,13 +109,26 @@ class Demo : public Engine {
 		for (int x=0; x<width; x++) {
 			for (int y=0; y<height; y++) {
 				ParticleType& curr=particleGrid[ix(x, y)];
-				if (curr==Barrier) rst.setChar('@');
-				if (curr==Air) rst.setChar(' ');
-				if (curr==Sand) rst.setChar('.');
-				if (curr==Water) rst.setChar('~');
+				if (curr==Barrier) {
+					rst.setChar('@');
+					rst.setColor(Raster::DARK_GREY);
+				}
+				else if (curr==Air) rst.setChar(' ');
+				else if (curr==Sand) {
+					rst.setChar('.');
+					rst.setColor(Raster::DARK_YELLOW);
+				}
+				else if (curr==Water) {
+					rst.setChar('~');
+					rst.setColor(Raster::CYAN);
+				}
 				rst.putPixel(x, y);
 			}
 		}
+
+		//show fps
+		rst.setColor(Raster::WHITE);
+		rst.drawString(0, 0, "FPS: "+std::to_string((int)fps));
 	}
 };
 

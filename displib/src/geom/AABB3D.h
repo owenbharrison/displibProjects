@@ -1,8 +1,7 @@
-#pragma once
-
 #include "../maths/vector/V3D.h"
 
 namespace displib {
+#pragma once
 	class AABB3D {
 		public:
 		V3D min, max;

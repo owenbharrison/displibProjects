@@ -1,9 +1,8 @@
-#pragma once
-
 #include <cmath>
 #include <string>
 
 namespace displib {
+#pragma once
 	class V3D {
 		public:
 		float x, y, z;

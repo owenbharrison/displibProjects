@@ -1,10 +1,8 @@
-#pragma once
-
-#include <windows.h>
 #include "io/Raster.h"
 #include <chrono>
 
 namespace displib {
+#pragma once
 	class Engine {
 		private:
 		Raster raster;

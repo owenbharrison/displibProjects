@@ -1,4 +1,3 @@
-#include <iostream>
 #include <vector>
 #include <time.h>
 
@@ -69,11 +68,12 @@ class Demo : public Engine {
 
 	void draw(Raster& rst) override {
 		//background
-		rst.setChar(32);
+		rst.setChar(' ');
 		rst.fillRect(0, 0, width, height);
 
 		//draw all "mirrors"
 		rst.setChar('m');
+		rst.setColor(Raster::RED);
 		for (Mirror& m:mirrors) {
 			rst.drawLine(m.a.x, m.a.y, m.b.x, m.b.y);
 		}
@@ -106,6 +106,8 @@ class Demo : public Engine {
 				}
 			}
 
+			//if viable:
+			rst.setColor(Raster::WHITE);
 			if (chosenMirror!=nullptr) {
 				//use closest "mirror"
 				Mirror& mirrorToUse=*chosenMirror;
@@ -132,6 +134,7 @@ class Demo : public Engine {
 		//show fps
 		rst.setChar(' ');
 		rst.fillRect(0, 0, 10, 2);
+		rst.setColor(Raster::WHITE);
 		rst.drawString(0, 0, "FPS: "+std::to_string((int)fps));
 	}
 };
@@ -141,7 +144,7 @@ int main() {
 
 	//init custom graphics engine
 	Demo d=Demo();
-	d.start(6, 6, true);
+	d.start(8, 8, true);
 
 	return 0;
 }

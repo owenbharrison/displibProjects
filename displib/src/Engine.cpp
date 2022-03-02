@@ -97,5 +97,8 @@ namespace displib {
 	void Engine::setTitle(std::string str) { SetConsoleTitleA(str.c_str()); }
 
 	//displays raster in text to console window
-	void Engine::displayRasterToConsole() { WriteConsoleOutputCharacter(this->consoleHandle, this->raster.getBuffer(), this->width*this->height, {0, 0}, &this->bytesWritten); }
+	void Engine::displayRasterToConsole() {
+		SMALL_RECT windowRect={0, 0, this->width-1, this->height-1};
+		WriteConsoleOutput(this->consoleHandle, this->raster.getBuffer(), {(short)this->width, (short)this->height}, {0, 0}, &windowRect);
+	}
 }
