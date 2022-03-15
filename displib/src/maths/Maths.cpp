@@ -42,10 +42,10 @@ namespace displib {
 
 	float* Maths::lineLineIntersection(V2D a, V2D b, V2D c, V2D d) {
 		float q=(a.x-b.x)*(c.y-d.y)-(a.y-b.y)*(c.x-d.x);
-		float f[2]={0.0f};
-		f[0]=((a.x-c.x)*(c.y-d.y)-(a.y-c.y)*(c.x-d.x))/q;
-		f[1]=((b.x-a.x)*(a.y-c.y)-(b.y-a.y)*(a.x-c.x))/q;
-		return f;
+		float* tu=new float[2];
+		tu[0]=((a.x-c.x)*(c.y-d.y)-(a.y-c.y)*(c.x-d.x))/q;
+		tu[1]=((b.x-a.x)*(a.y-c.y)-(b.y-a.y)*(a.x-c.x))/q;
+		return tu;
 	}
 
 	bool Maths::lineLineIntersect(V2D a, V2D b, V2D c, V2D d) {

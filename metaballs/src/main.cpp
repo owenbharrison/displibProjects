@@ -40,8 +40,20 @@ class Demo : public Engine {
 	AABB2D bounds;
 	int num=6;
 	Metaball* metaballs;
-	const char* asciiArr=" .=+#@";
-	const int asciiLen=strlen(asciiArr);
+
+	short colorArr[10]={
+		Raster::DARK_RED,
+		Raster::DARK_YELLOW,
+		Raster::GREEN,
+		Raster::DARK_GREEN,
+		Raster::CYAN,
+		Raster::DARK_CYAN,
+		Raster::BLUE,
+		Raster::DARK_BLUE,
+		Raster::DARK_MAGENTA,
+		Raster::MAGENTA
+	};
+	int colorLen=10;
 
 	void setup() override {
 		bounds=AABB2D(0, 0, width, height);
@@ -72,11 +84,12 @@ class Demo : public Engine {
 		rst.fillRect(0, 0, width, height);
 
 		//metaball method
+		rst.setChar('#');
 		bool* grid=new bool[width*height];
 		for (int x=0; x<width; x++) {
 			for (int y=0; y<height; y++) {
 				//sum all "radius strengths"
-				float sum=0.0f;
+				float sum=0;
 				for (int i=0; i<num; i++) {
 					V2D sb=V2D(x, y)-metaballs[i].pos;
 					float r=metaballs[i].rad;
@@ -84,19 +97,18 @@ class Demo : public Engine {
 				}
 				//make 0-1 float into ascii ramp value
 				float pct=Maths::clamp(sum/8, 0, 1);
-				int asi=Maths::clamp(pct*asciiLen, 0, asciiLen-1);
-				rst.setChar(asciiArr[asi]);
+				int asi=Maths::clamp(pct*colorLen, 0, colorLen-1);
+				rst.setColor(colorArr[asi]);
 				rst.putPixel(x, y);
 
 				//put val into grid for edge detect.
-				float amt=Maths::map(sinf(totalDt), -1, 1, 0.5f, 6.5f);
+				float amt=Maths::map(sinf(totalDeltaTime), -1, 1, 0.3f, 5.5f);
 				grid[ix(x, y)]=sum>amt;
 			}
 		}
 
 		//edge detection
-		rst.setChar('#');
-		rst.setColor(Raster::GREEN);
+		rst.setChar(' ');
 		for (int x=0; x<width; x++) {
 			for (int y=0; y<height; y++) {
 				bool diff=false;
@@ -110,18 +122,10 @@ class Demo : public Engine {
 		}
 		delete[] grid;
 
-		//show "ball" positions
-		rst.setColor(Raster::CYAN);
-		for (int i=0; i<num; i++) {
-			Metaball& m=metaballs[i];
-			rst.putPixel(m.pos.x, m.pos.y);
-		}
-
 		//show fps
-		rst.setChar(' ');
 		rst.fillRect(0, 0, 10, 2);
 		rst.setColor(Raster::WHITE);
-		rst.drawString(0, 0, "FPS: "+std::to_string((int)fps));
+		rst.drawString(0, 0, "FPS: "+std::to_string((int)framesPerSecond));
 	}
 
 	//2d array "hack" index method
@@ -135,7 +139,7 @@ int main() {
 
 	//init custom graphics engine
 	Demo d=Demo();
-	d.start(12, 12, true);
+	d.start(10, 10, true);
 
 	return 0;
 }

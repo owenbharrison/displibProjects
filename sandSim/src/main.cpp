@@ -14,6 +14,7 @@ class Demo : public Engine {
 	ParticleType* particleGrid;
 	float timer=0;
 	float timePerStep=0.01f;
+	float lastDt;
 
 	void setup() override {
 		particleGrid=new ParticleType[width*height];
@@ -94,6 +95,8 @@ class Demo : public Engine {
 
 		//update timer
 		timer+=dt;
+
+		lastDt=dt;
 	}
 
 	int ix(int i, int j) {
@@ -128,7 +131,7 @@ class Demo : public Engine {
 
 		//show fps
 		rst.setColor(Raster::WHITE);
-		rst.drawString(0, 0, "FPS: "+std::to_string((int)fps));
+		rst.drawString(0, 0, "FPS: "+std::to_string((int)framesPerSecond));
 	}
 };
 

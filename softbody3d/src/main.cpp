@@ -180,7 +180,7 @@ class Demo : public Engine {
 		//show fps
 		rst.setChar(' ');
 		rst.fillRect(0, 0, 15, 4);
-		rst.drawString(0, 0, "FPS: "+std::to_string((int)fps));
+		rst.drawString(0, 0, "FPS: "+std::to_string((int)framesPerSecond));
 		rst.drawString(0, 1, "yaw: "+std::to_string(camYaw));
 		rst.drawString(0, 2, "pitch: "+std::to_string(camPitch));
 	}

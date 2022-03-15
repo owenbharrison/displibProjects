@@ -56,7 +56,7 @@ class Demo : public Engine {
 		rst.drawLine(p2.x, p2.y, p3.x, p3.y);
 
 		//draw first lerps
-		float t=Maths::map(cosf(totalDt*0.67f), -1, 1, 0, 1);
+		float t=Maths::map(cosf(totalDeltaTime*0.67f), -1, 1, 0, 1);
 		V2D lp0=lerp(p0, p1, t);
 		V2D lp1=lerp(p1, p2, t);
 		V2D lp2=lerp(p2, p3, t);
@@ -84,7 +84,7 @@ class Demo : public Engine {
 		}
 		//update trail, make sure it is not too long
 		trail.push_back(finalPt);
-		if (num>fps*2) {
+		if (num>framesPerSecond*2) {
 			trail.erase(trail.begin());
 		}
 
@@ -100,7 +100,7 @@ class Demo : public Engine {
 		rst.setChar(' ');
 		rst.fillRect(0, 0, 10, 3);
 		rst.setColor(Raster::WHITE);
-		rst.drawString(0, 0, "FPS: "+std::to_string((int)fps));
+		rst.drawString(0, 0, "FPS: "+std::to_string((int)framesPerSecond));
 	}
 };
 

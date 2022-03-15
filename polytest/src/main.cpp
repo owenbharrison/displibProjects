@@ -27,7 +27,7 @@ class Demo : public Engine {
 		poly.pos=V2D(mouseX, mouseY);
 
 		//spin it some
-		poly.angle+=0.5f*dt;
+		poly.angle=totalDeltaTime/2;
 
 		//update the poly
 		poly.updatePoints();
@@ -52,7 +52,7 @@ class Demo : public Engine {
 		rst.setChar(' ');
 		rst.fillRect(0, 0, 10, 2);
 		rst.setColor(Raster::WHITE);
-		rst.drawString(0, 0, "FPS: "+std::to_string((int)fps));
+		rst.drawString(0, 0, "FPS: "+std::to_string((int)framesPerSecond));
 	}
 };
 

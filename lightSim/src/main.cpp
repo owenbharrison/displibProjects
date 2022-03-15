@@ -103,6 +103,7 @@ class Demo : public Engine {
 							chosenMirror=&m;
 						}
 					}
+					delete[] tu;
 				}
 			}
 
@@ -135,7 +136,7 @@ class Demo : public Engine {
 		rst.setChar(' ');
 		rst.fillRect(0, 0, 10, 2);
 		rst.setColor(Raster::WHITE);
-		rst.drawString(0, 0, "FPS: "+std::to_string((int)fps));
+		rst.drawString(0, 0, "FPS: "+std::to_string((int)framesPerSecond));
 	}
 };
 

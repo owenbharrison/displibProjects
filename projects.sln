@@ -29,6 +29,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "raycaster", "raycaster\rayc
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "raymarching2d", "raymarching2d\raymarching2d.vcxproj", "{5D7AC257-9C01-428B-8BB6-C35F401127EB}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "raytracer", "raytracer\raytracer.vcxproj", "{8F090473-9C4F-43FE-B8B5-29E94E20BCE6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -141,6 +143,14 @@ Global
 		{5D7AC257-9C01-428B-8BB6-C35F401127EB}.Release|x64.Build.0 = Release|x64
 		{5D7AC257-9C01-428B-8BB6-C35F401127EB}.Release|x86.ActiveCfg = Release|Win32
 		{5D7AC257-9C01-428B-8BB6-C35F401127EB}.Release|x86.Build.0 = Release|Win32
+		{8F090473-9C4F-43FE-B8B5-29E94E20BCE6}.Debug|x64.ActiveCfg = Debug|x64
+		{8F090473-9C4F-43FE-B8B5-29E94E20BCE6}.Debug|x64.Build.0 = Debug|x64
+		{8F090473-9C4F-43FE-B8B5-29E94E20BCE6}.Debug|x86.ActiveCfg = Debug|Win32
+		{8F090473-9C4F-43FE-B8B5-29E94E20BCE6}.Debug|x86.Build.0 = Debug|Win32
+		{8F090473-9C4F-43FE-B8B5-29E94E20BCE6}.Release|x64.ActiveCfg = Release|x64
+		{8F090473-9C4F-43FE-B8B5-29E94E20BCE6}.Release|x64.Build.0 = Release|x64
+		{8F090473-9C4F-43FE-B8B5-29E94E20BCE6}.Release|x86.ActiveCfg = Release|Win32
+		{8F090473-9C4F-43FE-B8B5-29E94E20BCE6}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

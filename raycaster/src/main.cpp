@@ -14,8 +14,11 @@ struct Line {
 
 	float intersectRay(Ray r) {
 		float* tu=Maths::lineLineIntersection(a, b, r.origin, r.origin+r.dir);
-		if (tu[0]>0&&tu[0]<1&&tu[1]>0) return tu[1];//ray line intersect
-		return -1;//no intersect
+		float t;
+		if (tu[0]>0&&tu[0]<1&&tu[1]>0) t=tu[1];//ray line intersect
+		else t=-1;//no intersect
+		delete[] tu;
+		return t;
 	}
 };
 
@@ -115,7 +118,7 @@ class Demo : public Engine {
 		rst.setChar(' ');
 		rst.fillRect(0, 0, 10, 2);
 		rst.setColor(Raster::WHITE);
-		rst.drawString(0, 0, "FPS: "+std::to_string((int)fps));
+		rst.drawString(0, 0, "FPS: "+std::to_string((int)framesPerSecond));
 	}
 };
 

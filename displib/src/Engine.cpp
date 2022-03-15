@@ -48,18 +48,16 @@ namespace displib {
 		this->windowHandle=GetConsoleWindow();
 
 		//timing
-		this->currTime=std::chrono::system_clock::now();
-		this->prevTime=this->currTime;
+		this->lastCallTime=std::chrono::system_clock::now();
 
 		//MAIN
 		this->setup();
 
 		while (!this->getKey(27)) {
 			//timing
-			this->currTime=std::chrono::system_clock::now();
-			std::chrono::duration<float> elapsedTime=this->currTime-this->prevTime;
+			std::chrono::duration<float> elapsedTime=std::chrono::system_clock::now()-this->lastCallTime;
+			this->lastCallTime=std::chrono::system_clock::now();
 			float dt=elapsedTime.count();
-			this->prevTime=this->currTime;
 
 			//mouse
 			POINT pt;
@@ -72,9 +70,9 @@ namespace displib {
 			this->update(dt);
 
 			//ease of use
-			this->fps=1.0/dt;
+			this->framesPerSecond=1/dt;
 			this->updateCount++;
-			this->totalDt+=dt;
+			this->totalDeltaTime+=dt;
 
 			//draws
 			this->draw(this->raster);

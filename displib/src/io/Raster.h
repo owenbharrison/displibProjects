@@ -9,7 +9,7 @@ namespace displib {
 		CHAR_INFO currChar;
 
 		public:
-		enum __COLORS__ {
+		enum COLORS {
 			BLACK=0x0000,
 			DARK_BLUE=0x0001,
 			DARK_GREEN=0x0002,

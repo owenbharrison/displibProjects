@@ -10,7 +10,7 @@ namespace displib {
 		HWND windowHandle;
 		DWORD bytesWritten=0;
 		int charWidth=0, charHeight=0;
-		std::chrono::time_point<std::chrono::system_clock> currTime, prevTime;
+		std::chrono::time_point<std::chrono::system_clock> lastCallTime;
 
 		void displayRasterToConsole();
 
@@ -18,7 +18,7 @@ namespace displib {
 		int width=0, height=0;
 		int updateCount=0;
 		int mouseX=0, mouseY=0;
-		float fps=0.0f, totalDt=0.0f;
+		float framesPerSecond=0.0f, totalDeltaTime=0.0f;
 
 		Engine();
 

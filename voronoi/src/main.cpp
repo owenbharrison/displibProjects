@@ -122,8 +122,8 @@ class Demo : public Engine {
 		//show fps
 		rst.setChar(' ');
 		rst.fillRect(0, 0, 10, 2);
-		rst.setChar(Raster::WHITE);
-		rst.drawString(0, 0, "FPS: "+std::to_string((int)fps));
+		rst.setColor(Raster::WHITE);
+		rst.drawString(0, 0, "FPS: "+std::to_string((int)framesPerSecond));
 	}
 };
 

@@ -69,7 +69,8 @@ class Demo : public Engine {
 				tries++;
 			}
 			if (tries==max_tries) {
-				addingCircles=false;//basically never spawn more circles
+				//basically never spawn more circles
+				addingCircles=false;
 			}
 		}
 
@@ -77,17 +78,20 @@ class Demo : public Engine {
 		//check all against all
 		for (int i=0; i<circles.size(); i++) {
 			for (int j=i+1; j<circles.size(); j++) {
-				circle& a=circles.at(i);//make sure to be a ref.
+				//make sure to be a ref.
+				circle& a=circles.at(i);
 				circle& b=circles.at(j);
 				if (a.overlapCircle(b)) {
-					a.growing=false;//stop both
+					//stop both
+					a.growing=false;
 					b.growing=false;
 				}
 			}
 		}
 
 		for (auto& c:circles) {
-			if(c.growing)c.rad+=dt;//grow if we can
+			//grow if we can
+			if (c.growing)c.rad+=dt;
 		}
 
 		timer+=dt;
@@ -107,7 +111,7 @@ class Demo : public Engine {
 		rst.setChar(' ');
 		rst.fillRect(0, 0, 12, 2);
 		rst.setColor(Raster::WHITE);
-		rst.drawString(0, 0, "FPS: "+std::to_string((int)fps));
+		rst.drawString(0, 0, "FPS: "+std::to_string((int)framesPerSecond));
 	}
 };
 
