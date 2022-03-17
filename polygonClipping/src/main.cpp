@@ -1,0 +1,169 @@
+#include <time.h>
+
+#include "Engine.h"
+#include "maths/Maths.h"
+using namespace displib;
+
+class Demo : public Engine {
+	public:
+	V2D ptA, ptB;
+	int mainNum;
+	V2D* mainPoly;
+
+	bool clipPolyByLine(V2D* polyPts, int numPts, V2D lp0, V2D lp1, V2D*& ptsAOut, int& sizeAOut, V2D*& ptsBOut, int& sizeBOut) {
+		//this has to be at least a triangle to be a polygon.
+		if (numPts<3) return false;
+
+		V2D ptMin, ptMax;
+		int iMin=-1, iMax=-1;
+		int numIx=0;
+		//loop through the poly
+		for (int i=0; i<numPts; i++) {
+			//get the "edge" at the index
+			V2D a=polyPts[i];
+			V2D b=polyPts[(i+1)%numPts];
+			//find line intersections
+			float* tu=Maths::lineLineIntersection(a, b, lp0, lp1);
+			V2D ixPt=a+(b-a)*tu[0];
+			//if the hit is inbetween both lines
+			if (tu[0]>0&&tu[0]<1&&tu[1]>0&&tu[1]<1) {
+				//set the pts and indexes
+				if (iMin<0) { iMin=i; ptMin=ixPt; }
+				else if (iMax<0) { iMax=i; ptMax=ixPt; }
+				numIx++;
+			}
+			//memory clearing
+			delete[] tu;
+		}
+
+		//check to "make sure" poly is convex or that the line is "properly" slicing it
+		if (numIx!=2) return false;
+
+		//poly a
+		int sizeA=iMax-iMin+2;
+		sizeAOut=sizeA;
+		ptsAOut=new V2D[sizeA];
+		int iA=0;
+		ptsAOut[iA++]=ptMax;
+		ptsAOut[iA++]=ptMin;
+		//one side of the orig poly
+		for (int n=iMin; n!=iMax; n=(n+1)%numPts) {//"circular" "index-stepping"
+			ptsAOut[iA++]=polyPts[(n+1)%numPts];
+		}
+
+		//poly b
+		int sizeB=numPts+4-sizeA;
+		sizeBOut=sizeB;
+		ptsBOut=new V2D[sizeB];
+		int iB=0;
+		ptsBOut[iB++]=ptMin;
+		ptsBOut[iB++]=ptMax;
+		//the other side of the orig poly
+		for (int n=iMax; n!=iMin; n=(n+1)%numPts) {//"circular" "index-stepping"
+			ptsBOut[iB++]=polyPts[(n+1)%numPts];
+		}
+
+		//done!
+		return true;
+	}
+
+	void drawPolyWithAllLines(Raster& rst, V2D* pts, int numPts) {
+		//connect each pt to every other point with a line
+		for (int i=0; i<numPts; i++) {
+			for (int j=i+1; j<numPts; j++) {
+				V2D a=pts[i];
+				V2D b=pts[j];
+				rst.drawLine(a.x, a.y, b.x, b.y);
+			}
+		}
+	}
+
+	void setup() override {
+		//some randomly sized poly on the screen
+		mainNum=Maths::clamp(rand()%7+3, 3, 10);
+		mainPoly=new V2D[mainNum];
+		float rad=Maths::random(height/6, height/3);
+		V2D pos(
+			Maths::random(rad, width-rad),
+			Maths::random(rad, height-rad)
+		);
+		for (int i=0; i<mainNum; i++) {
+			float angle=Maths::map(i, 0, mainNum, 0, Maths::TAU);
+			mainPoly[i]=V2D::fromAngle(angle)*rad+pos;
+		}
+	}
+
+	void update(float dt) override {
+		V2D mv(mouseX, mouseY);
+		//user input
+		if (getKey('1')) ptA=mv;
+		if (getKey('2')) ptB=mv;
+	}
+
+	void draw(Raster& rst) override {
+		//background
+		rst.setChar(' ');
+		rst.fillRect(0, 0, width, height);
+
+		//draw polygon
+		rst.setChar('p');
+		rst.setColor(Raster::BLUE);
+		for (int i=0; i<mainNum; i++) {
+			V2D a=mainPoly[i];
+			V2D b=mainPoly[(i+1)%mainNum];
+			rst.drawLine(a.x, a.y, b.x, b.y);
+		}
+
+		//"clip" polygon
+		V2D* polyA, * polyB;
+		int sizeA=0, sizeB=0;
+		bool clipped=clipPolyByLine(mainPoly, mainNum, ptA, ptB, polyA, sizeA, polyB, sizeB);
+
+		//only if the poly was "clippable"
+		if (clipped) {
+			//draw poly a
+			rst.setChar('a');
+			rst.setColor(Raster::RED);
+			drawPolyWithAllLines(rst, polyA, sizeA);
+
+			//draw poly b
+			rst.setChar('b');
+			rst.setColor(Raster::DARK_YELLOW);
+			drawPolyWithAllLines(rst, polyB, sizeB);
+			delete[] polyA;
+			delete[] polyB;
+		}
+
+		//draw the clipline
+		rst.setChar('c');
+		rst.setColor(Raster::GREEN);
+		rst.drawLine(ptA.x, ptA.y, ptB.x, ptB.y);
+
+		//draw clipline pt 1
+		rst.setChar('1');
+		rst.setColor(Raster::WHITE);
+		rst.fillRect(ptA.x-1, ptA.y-1, 3, 3);
+
+		//draw clipline pt 2
+		rst.setChar('2');
+		rst.fillRect(ptB.x-1, ptB.y-1, 3, 3);
+
+		//show fps
+		rst.setChar(' ');
+		rst.fillRect(0, 0, 11, 4);
+		rst.setColor(Raster::WHITE);
+		rst.drawString(0, 0, "FPS: "+std::to_string((int)framesPerSecond));
+		rst.drawString(0, 1, std::to_string(mainNum)+" sides");
+		rst.drawString(0, 2, std::to_string(sizeA)+" & "+std::to_string(sizeB));
+	}
+};
+
+int main() {
+	srand(time(NULL));
+
+	//init custom graphics engine
+	Demo d=Demo();
+	d.start(12, 12, true);
+
+	return 0;
+}
