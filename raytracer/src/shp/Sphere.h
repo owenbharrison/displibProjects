@@ -8,9 +8,9 @@ class Sphere : public Shape {
 
 	Sphere();
 
-	Sphere(displib::V3D& pos_, float rad_, short col_);
+	Sphere(displib::V3D& pos_, float rad_, short col_, bool reflective_);
 
 	float intersectRay(Ray& r) override;
 
-	bool getIntersection(Ray& r, Hit* hitOut) override;
+	bool getIntersection(Ray& r, Hit& hitOut) override;
 };

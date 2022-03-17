@@ -4,20 +4,20 @@ Tri::Tri() {
 	this->v0=displib::V3D();
 	this->v1=displib::V3D();
 	this->v2=displib::V3D();
-	this->col=0x000F;
 }
 
-Tri::Tri(displib::V3D& v0_, displib::V3D& v1_, displib::V3D& v2_, short col_) {
+Tri::Tri(displib::V3D& v0_, displib::V3D& v1_, displib::V3D& v2_, short col_, bool reflective_) {
 	this->v0=v0_;
 	this->v1=v1_;
 	this->v2=v2_;
 	this->col=col_;
+	this->reflective=reflective_;
 }
 
 displib::V3D& Tri::getNorm() {
-	displib::V3D e1=displib::V3D::normal(this->v1-this->v0);
-	displib::V3D e2=displib::V3D::normal(this->v2-this->v0);
-	displib::V3D cr=e1.cross(e2);
+	displib::V3D e1=this->v1-this->v0;
+	displib::V3D e2=this->v2-this->v0;
+	displib::V3D cr=displib::V3D::normal(e1.cross(e2));
 	return cr;
 }
 
@@ -40,13 +40,13 @@ float Tri::intersectRay(Ray& r) {
 	return -1;
 }
 
-bool Tri::getIntersection(Ray& r, Hit* hitOut) {
+bool Tri::getIntersection(Ray& r, Hit& hitOut) {
 	float dist=this->intersectRay(r);
 	//invalid
 	if (dist==-1) return false;
 
 	//use dist to march dir to hitpos
 	displib::V3D hitPos=r.origin+r.dir*dist;
-	*hitOut=Hit(r, dist, hitPos, this->getNorm(), this->col);
+	hitOut=Hit(r, dist, hitPos, this->getNorm(), this->col, this->reflective);
 	return true;
 }

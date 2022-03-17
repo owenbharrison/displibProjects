@@ -7,5 +7,5 @@ class Ray {
 
 	Ray();
 
-	Ray(displib::V3D& origin_, displib::V3D& dir_);
+	Ray(displib::V3D origin_, displib::V3D dir_);
 };

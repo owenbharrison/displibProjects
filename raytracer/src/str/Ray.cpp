@@ -5,7 +5,7 @@ Ray::Ray() {
 	this->dir=displib::V3D();
 }
 
-Ray::Ray(displib::V3D& origin_, displib::V3D& dir_) {
+Ray::Ray(displib::V3D origin_, displib::V3D dir_) {
 	this->origin=origin_;
 	this->dir=dir_;
 }

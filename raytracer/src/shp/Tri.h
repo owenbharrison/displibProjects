@@ -7,11 +7,11 @@ class Tri : public Shape {
 
 	Tri();
 
-	Tri(displib::V3D& v0_, displib::V3D& v1_, displib::V3D& v2_, short col_);
+	Tri(displib::V3D& v0_, displib::V3D& v1_, displib::V3D& v2_, short col_, bool reflective_);
 
 	float intersectRay(Ray& r) override;
 
 	displib::V3D& getNorm();
 
-	bool getIntersection(Ray& r, Hit* hitOut) override;
+	bool getIntersection(Ray& r, Hit& hitOut) override;
 };

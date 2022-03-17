@@ -13,6 +13,7 @@ class Demo : public Engine {
 	V3D camPos, sunPos;
 	float FOV;
 	float camYaw, camPitch;
+	int maxBounces=25;
 
 	const char* asciiArr=" .,~=#&@";
 	const int asciiLen=strlen(asciiArr);
@@ -39,8 +40,8 @@ class Demo : public Engine {
 		//add spheres
 		V3D s1=V3D(-5, 0, 0);
 		V3D s2=V3D(4, 0, 0);
-		shapes.push_back(new Sphere(s1, 2.2f, Raster::RED));
-		shapes.push_back(new Sphere(s2, 1.5f, Raster::BLUE));
+		shapes.push_back(new Sphere(s1, 2.2f, Raster::RED, false));
+		shapes.push_back(new Sphere(s2, 1.5f, Raster::BLUE, false));
 
 		//add tetrahedron
 		float ttSz=1.7f;
@@ -48,22 +49,33 @@ class Demo : public Engine {
 		V3D vf(0, -ttSz, ttSz);
 		V3D vbl(-ttSz, -ttSz, -ttSz);
 		V3D vbr(ttSz, -ttSz, -ttSz);
-		shapes.push_back(new Tri(vt, vf, vbr, Raster::GREEN));
-		shapes.push_back(new Tri(vt, vbr, vbl, Raster::GREEN));
-		shapes.push_back(new Tri(vt, vbl, vf, Raster::GREEN));
-		shapes.push_back(new Tri(vf, vbl, vbr, Raster::GREEN));
+		shapes.push_back(new Tri(vt, vf, vbr, Raster::GREEN, false));
+		shapes.push_back(new Tri(vt, vbr, vbl, Raster::GREEN, false));
+		shapes.push_back(new Tri(vt, vbl, vf, Raster::GREEN, false));
+		shapes.push_back(new Tri(vf, vbl, vbr, Raster::GREEN, false));
 
 		//add groundPlane
-		float grSz=4;
-		V3D vnn(-grSz, -grSz, -grSz);
-		V3D vnp(-grSz, -grSz, grSz);
-		V3D vpn(grSz, -grSz, -grSz);
-		V3D vpp(grSz, -grSz, grSz);
-		V3D vc(0, -grSz, 0);
-		shapes.push_back(new Tri(vnn, vc, vpn, Raster::DARK_YELLOW));
-		shapes.push_back(new Tri(vpn, vc, vpp, Raster::DARK_MAGENTA));
-		shapes.push_back(new Tri(vpp, vc, vnp, Raster::DARK_YELLOW));
-		shapes.push_back(new Tri(vnp, vc, vnn, Raster::DARK_MAGENTA));
+		float sz=4;
+		V3D gnn(-sz, -sz, -sz);
+		V3D gnp(-sz, -sz, sz);
+		V3D gpn(sz, -sz, -sz);
+		V3D gpp(sz, -sz, sz);
+		V3D gc(0, -sz, 0);
+		shapes.push_back(new Tri(gnn, gc, gpn, Raster::DARK_YELLOW, false));
+		shapes.push_back(new Tri(gpn, gc, gpp, Raster::DARK_MAGENTA, false));
+		shapes.push_back(new Tri(gpp, gc, gnp, Raster::DARK_YELLOW, false));
+		shapes.push_back(new Tri(gnp, gc, gnn, Raster::DARK_MAGENTA, false));
+
+		//add side mirror
+		V3D mtl(-sz, sz, sz);
+		V3D mtr(sz, sz, sz);
+		V3D mbl(-sz, -sz, sz);
+		V3D mbr(sz, -sz, sz);
+		V3D mc(0, 0, sz);
+		shapes.push_back(new Tri(mtl, mtr, mc, Raster::WHITE, true));
+		shapes.push_back(new Tri(mtr, mbr, mc, Raster::WHITE, true));
+		shapes.push_back(new Tri(mbr, mbl, mc, Raster::WHITE, true));
+		shapes.push_back(new Tri(mbl, mtl, mc, Raster::WHITE, true));
 
 		//initialize other stuff
 		camPos=V3D(0, 0, -5);
@@ -106,6 +118,58 @@ class Demo : public Engine {
 		camPitch=Maths::clamp(camPitch, 0.0001f, Maths::PI-0.0001f);
 	}
 
+	bool traceRay(Ray rayToUse, std::vector<Shape*> shapeSetToUse, short& charOut, short& colorOut) {
+		//sort
+		Hit chosenHit;
+		float record=INFINITY;
+		bool shapeFound=false;
+		for (auto& sptr:shapeSetToUse) {//we love auto!
+			Hit ix;
+			Shape& shp=*sptr;
+			if (shp.getIntersection(rayToUse, ix)) {
+				if (ix.dist<record) {
+					record=ix.dist;
+					chosenHit=ix;
+					shapeFound=true;
+				}
+			}
+		}
+		//color pixel accordingly
+		if (shapeFound) {
+			//use closest shape
+			colorOut=chosenHit.col;
+
+			//diffuse shade
+			V3D sunDir=V3D::normal(sunPos-chosenHit.pos);
+			float diffuse=sunDir.dot(chosenHit.norm);
+			charOut=diffuse<0?' ':asciiCharRamp(diffuse);
+
+			//shadows, find any shape inbetween the hit and the sun
+			Ray shadowRay=Ray(chosenHit.pos, sunDir);
+			for (auto& sptr:shapes) {
+				float dist=(*sptr).intersectRay(shadowRay);
+				if (dist!=-1) {//is there an intersection?
+					//so make the shadow dark!
+					charOut=' ';
+					return true;
+				}
+			}
+
+			if (chosenHit.reflective) {
+				traceRay(Ray(chosenHit.pos, reflectVec(rayToUse.dir, chosenHit.norm)), shapeSetToUse, charOut, colorOut);
+			}
+			return true;
+		}
+		else {
+			//make some circular pattern for the rays that hit no shapes.
+			float u, v;
+			dirToUV(rayToUse.dir, &u, &v);
+			charOut=48+u*10;
+			colorOut=Raster::DARK_GREY;
+			return false;
+		}
+	}
+
 	void draw(Raster& rst) override {
 		//background
 		rst.setChar(' ');
@@ -138,56 +202,15 @@ class Demo : public Engine {
 			//y flipped
 			for (int j=0, y=height-1; j<height; j++, y--) {
 				V3D pij=p1m+qx*i+qy*j;
-				V3D dir=V3D::normal(pij);
-				Ray ray=Ray(camPos, dir);
+				Ray ray=Ray(camPos, V3D::normal(pij));
 
-				//sort
-				Hit chosenHit;
-				float record=INFINITY;
-				bool shapeFound=false;
-				for (auto& sptr:shapes) {//we love auto!
-					Hit ix;
-					Shape& shp=*sptr;
-					if (shp.getIntersection(ray, &ix)) {
-						if (ix.dist<record) {
-							record=ix.dist;
-							chosenHit=ix;
-							shapeFound=true;
-						}
-					}
-				}
-
-				//mark point on hitGrid
-				hitGrid[x+y*width]=shapeFound;
-				//color pixel accordingly
-				if (shapeFound) {
-					//use closest shape
-					rst.setColor(chosenHit.col);
-
-					//diffuse shade
-					V3D sunDir=V3D::normal(sunPos-chosenHit.pos);
-					float diffuse=sunDir.dot(chosenHit.norm);
-					if (diffuse<0) rst.setChar(' ');
-					else rst.setChar(asciiCharRamp(diffuse));
-
-					//shadows, find any shape inbetween the hit and the sun
-					Ray shadowRay=Ray(chosenHit.pos, sunDir);
-					for (auto& sptr:shapes) {
-						float dist=(*sptr).intersectRay(shadowRay);
-						if (dist!=-1) {//is there an intersection?
-							//so make the shadow dark!
-							rst.setChar(' ');
-							break;
-						}
-					}
-				}
-				else {
-					//make some circular pattern for the rays that hit no shapes.
-					float u, v;
-					dirToUV(ray.dir, &u, &v);
-					rst.setChar(48+u*10);
-					rst.setColor(Raster::DARK_GREY);
-				}
+				//STARTCUT
+				short charToUse;
+				short colorToUse;
+				hitGrid[x+y*width]=traceRay(ray, shapes, charToUse, colorToUse);
+				rst.setChar(charToUse);
+				rst.setColor(colorToUse);
+				//ENDCUT
 				rst.putPixel(x, y);
 			}
 		}
