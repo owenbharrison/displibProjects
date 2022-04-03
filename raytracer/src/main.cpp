@@ -118,6 +118,10 @@ class Demo : public Engine {
 		camPitch=Maths::clamp(camPitch, 0.0001f, Maths::PI-0.0001f);
 	}
 
+	void shutdown() override {
+		shapes.clear();
+	}
+
 	bool traceRay(Ray rayToUse, std::vector<Shape*> shapeSetToUse, short& charOut, short& colorOut) {
 		//sort
 		Hit chosenHit;

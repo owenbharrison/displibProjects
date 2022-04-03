@@ -93,6 +93,10 @@ class Demo : public Engine {
 		}
 	}
 
+	void shutdown() override {
+		delete[] mainPoly;
+	}
+
 	void update(float dt) override {
 		V2D mv(mouseX, mouseY);
 		//user input

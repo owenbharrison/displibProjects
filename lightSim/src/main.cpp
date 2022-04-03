@@ -60,6 +60,10 @@ class Demo : public Engine {
 		maxLength=sqrtf(width*width+height*height);
 	}
 
+	void shutdown() {
+		mirrors.clear();
+	}
+
 	void update(float dt) override {
 		//change direction with keyboard
 		if (getKey('A')) angle-=2*dt;

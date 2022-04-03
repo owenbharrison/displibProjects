@@ -70,6 +70,10 @@ class Demo : public Engine {
 		}
 	}
 
+	void shutdown() override {
+		delete[] metaballs;
+	}
+
 	void update(float dt) override {
 		//update all
 		for (int i=0; i<num; i++) {

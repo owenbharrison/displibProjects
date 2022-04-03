@@ -38,7 +38,7 @@ struct voronoiPt {
 class Demo : public Engine {
 	public:
 	int num=16;
-	voronoiPt* vnPts={};
+	voronoiPt* vnPts;
 	AABB2D bounds;
 
 	void setup() override {
@@ -54,6 +54,10 @@ class Demo : public Engine {
 		}
 
 		bounds=AABB2D(0, 0, width, height);
+	}
+
+	void shutdown() override {
+		delete[] vnPts;
 	}
 
 	void update(float dt) override {

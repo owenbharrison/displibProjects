@@ -1,3 +1,5 @@
+#include <time.h>
+
 #include "Engine.h"
 #include "maths/Maths.h"
 using namespace displib;
@@ -14,7 +16,6 @@ class Demo : public Engine {
 	ParticleType* particleGrid;
 	float timer=0;
 	float timePerStep=0.01f;
-	float lastDt;
 
 	void setup() override {
 		particleGrid=new ParticleType[width*height];
@@ -32,28 +33,31 @@ class Demo : public Engine {
 		}
 	}
 
+	void shutdown() override {
+		delete[] particleGrid;
+	}
+
 	void update(float dt) override {
-		auto pgset=[&](int x, int y, ParticleType pt) { particleGrid[ix(x, y)]=pt; };
-		auto pgis=[&](int x, int y, ParticleType pt) { return particleGrid[ix(x, y)]==pt; };
+		//ez funcs
+		auto pgSet=[&](int x, int y, ParticleType pt) { particleGrid[ix(x, y)]=pt; };
+		auto pgGet=[&](int x, int y, ParticleType pt) { return particleGrid[ix(x, y)]==pt; };
 		//do timesteps
 		if (timer>timePerStep) {
-			//key checks:
-
 			//reset "sim"
 			if (getKey('R')) setup();
 
 			//add sand, water, large barriers, remove a lot
 			if (mouseX>0&&mouseY>0&&mouseX<width-1&&mouseY<height-1) {
-				if (getKey('S')) particleGrid[ix(mouseX, mouseY)]=Sand;
-				if (getKey('W')) particleGrid[ix(mouseX, mouseY)]=Water;
+				if (getKey('S')) pgSet(mouseX, mouseY, Sand);
+				if (getKey('W')) pgSet(mouseX, mouseY, Water);
 
 				for (int i=-1; i<=1; i++) {
 					for (int j=-1; j<=1; j++) {
 						int rx=mouseX+i;
 						int ry=mouseY+j;
 						if (rx>0&&ry>0&&rx<width-1&&ry<height-1) {
-							if (getKey('B')) particleGrid[ix(rx, ry)]=Barrier;
-							if (getKey('A')) particleGrid[ix(rx, ry)]=Air;
+							if (getKey('B')) pgSet(rx, ry, Barrier);
+							if (getKey('A')) pgSet(rx, ry, Air);
 						}
 					}
 				}
@@ -70,17 +74,19 @@ class Demo : public Engine {
 					if (curr!=Barrier) {//dont "update" barriers
 						//sand behavior:
 						if (curr==Sand) {//if free move there:
-							if (pgis(x, y+1, Air)) { pgset(x, y+1, Sand); pgset(x, y, Air); }//down
-							else if (pgis(x-1, y+1, Air)) { pgset(x-1, y+1, Sand); pgset(x, y, Air); }//down left
-							else if (pgis(x+1, y+1, Air)) { pgset(x+1, y+1, Sand); pgset(x, y, Air); }//down right
-						}
+							int l_r=Maths::random()>0.5?-1:1;//some randomness
+							if (pgGet(x, y+1, Air)) { pgSet(x, y+1, Sand); pgSet(x, y, Air); }//down
+							else if (pgGet(x-l_r, y+1, Air)) { pgSet(x-l_r, y+1, Sand); pgSet(x, y, Air); }//down left or right?
+							else if (pgGet(x+l_r, y+1, Air)) { pgSet(x+l_r, y+1, Sand); pgSet(x, y, Air); }//down the other side
+						} 
 						//water behavior:
 						else if (curr==Water) {//if free move there:
-							if (pgis(x, y+1, Air)) { pgset(x, y+1, Water); pgset(x, y, Air); }//down
-							else if (pgis(x-1, y+1, Air)) { pgset(x-1, y+1, Water); pgset(x, y, Air); }//down left
-							else if (pgis(x+1, y+1, Air)) { pgset(x+1, y+1, Water); pgset(x, y, Air); }//down right
-							else if (pgis(x-1, y, Air)) { pgset(x-1, y, Water); pgset(x, y, Air); }//left
-							else if (pgis(x+1, y, Air)) { pgset(x+1, y, Water); pgset(x, y, Air); }//right
+							int l_r=Maths::random()>0.5?-1:1;//some randomness
+							if (pgGet(x, y+1, Air)) { pgSet(x, y+1, Water); pgSet(x, y, Air); }//down
+							else if (pgGet(x-l_r, y+1, Air)) { pgSet(x-l_r, y+1, Water); pgSet(x, y, Air); }//down left or right?
+							else if (pgGet(x+l_r, y+1, Air)) { pgSet(x+l_r, y+1, Water); pgSet(x, y, Air); }//down the other side
+							else if (pgGet(x-l_r, y, Air)) { pgSet(x-l_r, y, Water); pgSet(x, y, Air); }//left or right?
+							else if (pgGet(x+l_r, y, Air)) { pgSet(x+l_r, y, Water); pgSet(x, y, Air); }//the other side
 						}
 					}
 				}
@@ -95,8 +101,6 @@ class Demo : public Engine {
 
 		//update timer
 		timer+=dt;
-
-		lastDt=dt;
 	}
 
 	int ix(int i, int j) {
@@ -109,19 +113,25 @@ class Demo : public Engine {
 		rst.fillRect(0, 0, width, height);
 
 		//draw cellGrid
+		int numBarrier=0;
+		int numSand=0;
+		int numWater=0;
 		for (int x=0; x<width; x++) {
 			for (int y=0; y<height; y++) {
 				ParticleType& curr=particleGrid[ix(x, y)];
 				if (curr==Barrier) {
+					numBarrier++;
 					rst.setChar('@');
 					rst.setColor(Raster::DARK_GREY);
 				}
 				else if (curr==Air) rst.setChar(' ');
 				else if (curr==Sand) {
+					numSand++;
 					rst.setChar('.');
 					rst.setColor(Raster::DARK_YELLOW);
 				}
 				else if (curr==Water) {
+					numWater++;
 					rst.setChar('~');
 					rst.setColor(Raster::CYAN);
 				}
@@ -132,10 +142,15 @@ class Demo : public Engine {
 		//show fps
 		rst.setColor(Raster::WHITE);
 		rst.drawString(0, 0, "FPS: "+std::to_string((int)framesPerSecond));
+		rst.drawString(0, 1, "Barrier: "+std::to_string(numBarrier));
+		rst.drawString(0, 2, "Sand: "+std::to_string(numSand));
+		rst.drawString(0, 3, "Water: "+std::to_string(numWater));
 	}
 };
 
 int main() {
+	srand(time(NULL));
+
 	//init custom graphics engine
 	Demo d=Demo();
 	d.start(12, 12, true);

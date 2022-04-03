@@ -20,6 +20,10 @@ class Demo : public Engine {
 		}
 	}
 
+	void shutdown() override {
+		delete[] cellGrid;
+	}
+
 	void update(float dt) override {
 		//do timesteps
 		if (timer>timePerStep) {
