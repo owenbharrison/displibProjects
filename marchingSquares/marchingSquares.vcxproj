@@ -21,8 +21,8 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{bf671126-3183-4804-874f-daa7db090cab}</ProjectGuid>
-    <RootNamespace>displib</RootNamespace>
+    <ProjectGuid>{31c5b410-f4bd-4a71-966e-9c2983e98fb7}</ProjectGuid>
+    <RootNamespace>marchingSquares</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -33,7 +33,7 @@
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
@@ -102,12 +102,15 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>C:\libnoise\include;$(SolutionDir)displib\src</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>C:\libnoise\bin\libnoise.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -139,26 +142,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\Engine.cpp" />
-    <ClCompile Include="src\geom\AABB2D.cpp" />
-    <ClCompile Include="src\geom\AABB3D.cpp" />
-    <ClCompile Include="src\geom\Poly2D.cpp" />
-    <ClCompile Include="src\io\Raster.cpp" />
-    <ClCompile Include="src\io\Stopwatch.cpp" />
-    <ClCompile Include="src\maths\Maths.cpp" />
-    <ClCompile Include="src\maths\vector\V2D.cpp" />
-    <ClCompile Include="src\maths\vector\V3D.cpp" />
+    <ClCompile Include="src\main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\Engine.h" />
-    <ClInclude Include="src\geom\AABB2D.h" />
-    <ClInclude Include="src\geom\AABB3D.h" />
-    <ClInclude Include="src\geom\Poly2D.h" />
-    <ClInclude Include="src\io\Raster.h" />
-    <ClInclude Include="src\io\Stopwatch.h" />
-    <ClInclude Include="src\maths\Maths.h" />
-    <ClInclude Include="src\maths\vector\V2D.h" />
-    <ClInclude Include="src\maths\vector\V3D.h" />
+    <ProjectReference Include="..\displib\displib.vcxproj">
+      <Project>{bf671126-3183-4804-874f-daa7db090cab}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

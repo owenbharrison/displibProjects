@@ -21,8 +21,8 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{bf671126-3183-4804-874f-daa7db090cab}</ProjectGuid>
-    <RootNamespace>displib</RootNamespace>
+    <ProjectGuid>{893a5c72-9326-4e42-a276-8b9c3d7a4a33}</ProjectGuid>
+    <RootNamespace>particleCollisions</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -33,7 +33,7 @@
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
@@ -102,6 +102,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>$(SolutionDir)displib\src;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -139,26 +140,18 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\Engine.cpp" />
-    <ClCompile Include="src\geom\AABB2D.cpp" />
-    <ClCompile Include="src\geom\AABB3D.cpp" />
-    <ClCompile Include="src\geom\Poly2D.cpp" />
-    <ClCompile Include="src\io\Raster.cpp" />
-    <ClCompile Include="src\io\Stopwatch.cpp" />
-    <ClCompile Include="src\maths\Maths.cpp" />
-    <ClCompile Include="src\maths\vector\V2D.cpp" />
-    <ClCompile Include="src\maths\vector\V3D.cpp" />
+    <ProjectReference Include="..\displib\displib.vcxproj">
+      <Project>{bf671126-3183-4804-874f-daa7db090cab}</Project>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\Engine.h" />
-    <ClInclude Include="src\geom\AABB2D.h" />
-    <ClInclude Include="src\geom\AABB3D.h" />
-    <ClInclude Include="src\geom\Poly2D.h" />
-    <ClInclude Include="src\io\Raster.h" />
-    <ClInclude Include="src\io\Stopwatch.h" />
-    <ClInclude Include="src\maths\Maths.h" />
-    <ClInclude Include="src\maths\vector\V2D.h" />
-    <ClInclude Include="src\maths\vector\V3D.h" />
+    <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\physics\Particle.cpp" />
+    <ClCompile Include="src\physics\Spring.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\physics\Particle.h" />
+    <ClInclude Include="src\physics\Spring.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -1,0 +1,441 @@
+#include <time.h>
+#include <vector>
+
+#include "Engine.h"
+#include "geom/Poly2D.h"
+using namespace displib;
+
+struct Particle {
+	V2D pos, vel;
+	float lifespan, age=0;
+
+	void update(float dt) {
+		pos+=vel*dt;
+		age+=dt;
+	}
+
+	//is too old?
+	bool isDead() {
+		return age>lifespan;
+	}
+
+	void show(Raster& rst) {
+		//ramp to show how "young" or "vibrant"
+		float pct=age/lifespan;
+		int asi=Maths::clamp(pct*8, 0, 7);
+		rst.setChar("@&#=~,. "[asi]);
+		rst.putPixel(pos.x, pos.y);
+	}
+};
+
+struct Bullet {
+	V2D pos, vel;
+
+	void update(float dt) {
+		pos+=vel*dt;
+	}
+
+	//is out of bounds?
+	bool isOffscreen(AABB2D a) {
+		return !a.containsPt(pos);
+	}
+};
+
+struct Asteroid {
+	V2D pos, vel;
+	float rad=0;
+	V2D* model=nullptr, * points=nullptr;
+	int numPts=0;
+
+	Asteroid() {}
+
+	Asteroid(V2D pos_, V2D vel_, float rad_, int numPts_) {
+		pos=pos_;
+		vel=vel_;
+		rad=rad_;
+		numPts=numPts_;
+		model=new V2D[numPts];
+		points=new V2D[numPts];
+		for (int i=0; i<numPts; i++) {
+			float angle=((float)i/(float)numPts)*Maths::PI*2;
+			model[i]=V2D::fromAngle(angle)*Maths::random(rad/2, rad);
+		}
+	}
+
+	void update(float dt) {
+		pos+=vel*dt;
+		for (int i=0; i<numPts; i++) {
+			points[i]=model[i]+pos;
+		}
+	}
+
+	//toroidal space
+	void checkAABB(AABB2D a) {
+		if (pos.x<a.min.x) pos.x=a.max.x;
+		if (pos.y<a.min.y) pos.y=a.max.y;
+		if (pos.x>a.max.x) pos.x=a.min.x;
+		if (pos.y>a.max.y) pos.y=a.min.y;
+	}
+
+	//can or should this be split more?
+	bool split(Asteroid& a, Asteroid& b) {
+		if (numPts<9) return false;
+		a=Asteroid(pos, V2D(-vel.y, vel.x), rad*Maths::random(0.6f, 0.9f), numPts/2);
+		b=Asteroid(pos, V2D(vel.y, -vel.x), rad*Maths::random(0.6f, 0.9f), numPts/2);
+		return true;
+	}
+
+	//is pt inside asteroid?
+	bool containsPt(V2D pt) {
+		int numIx=0;
+		for (int i=0; i<numPts; i++) {
+			V2D c=points[i];
+			V2D n=points[(i+1)%numPts];
+			float* tu=Maths::lineLineIntersection(pt, pt+V2D(1, 0), c, n);
+			//ray line intersect
+			if (tu[0]>0&&tu[1]>0&&tu[1]<1) numIx++;
+			delete[] tu;
+		}
+		return numIx%2==1;
+	}
+
+	void show(Raster& rst) {
+		for (int i=0; i<numPts; i++) {
+			V2D a=points[i];
+			V2D b=points[(i+1)%numPts];
+			rst.drawLine(a.x, a.y, b.x, b.y);
+		}
+	}
+};
+
+struct Ship {
+	V2D pos, vel, acc;
+	float rad=0, rot=0;
+	std::vector<Particle> particles;
+
+	Ship() {}
+
+	Ship(V2D pos_, float rad_) {
+		pos=pos_;
+		rad=rad_;
+	}
+
+	void update(float dt) {
+		//drag
+		applyForce(vel*-0.46f);
+		vel+=acc*dt;
+		pos+=vel*dt;
+		acc*=0;
+
+		for (int i=0; i<particles.size(); i++) {
+			Particle& p=particles.at(i);
+			p.update(dt);
+
+			if (p.isDead()) {
+				particles.erase(particles.begin()+i);
+				i--;
+			}
+		}
+	}
+
+	void applyForce(V2D f) {
+		acc+=f;
+	}
+
+	//toroidal space
+	void checkAABB(AABB2D a) {
+		if (pos.x<a.min.x) pos.x=a.max.x;
+		if (pos.y<a.min.y) pos.y=a.max.y;
+		if (pos.x>a.max.x) pos.x=a.min.x;
+		if (pos.y>a.max.y) pos.y=a.min.y;
+	}
+
+	Bullet getBullet() {
+		return {pos+V2D::fromAngle(rot)*rad, V2D::fromAngle(rot)*63};
+	}
+
+	//move forward
+	void boost(float f) {
+		applyForce(V2D::fromAngle(rot)*f);
+	}
+
+	void turn(float f) {
+		rot+=f;
+	}
+
+	//random particle at end of ship
+	void emitParticle() {
+		float randAngle=Maths::random(-Maths::PI/3, Maths::PI/3);
+		float speed=Maths::random(3, 6);
+		float lifespan=Maths::random(1.6f, 3.8f);
+		V2D vel=V2D::fromAngle(rot+Maths::PI+randAngle)*speed;
+		particles.push_back({pos-V2D::fromAngle(rot+randAngle/2)*rad, vel, lifespan});
+	}
+
+	V2D* outline() {
+		V2D fw=V2D::fromAngle(rot)*rad;
+		V2D up(-fw.y, fw.x);
+		return new V2D[3]{
+			pos+fw*1.2f,
+			pos-fw+up,
+			pos-fw-up
+		};
+	}
+
+	void show(Raster& rst) {
+		V2D* lns=outline();
+		rst.drawTriangle(lns[0].x, lns[0].y, lns[1].x, lns[1].y, lns[2].x, lns[2].y);
+	}
+
+	void showParticles(Raster& rst) {
+		for (Particle& p:particles) p.show(rst);
+	}
+};
+
+class Demo : public Engine {
+	public:
+	float particleTimer=0, bulletTimer=0, scoreTimer=0, warningTimer=0;
+	Ship ship;
+	AABB2D bounds;
+	std::vector<Asteroid> asteroids;
+	std::vector<Bullet> bullets;
+	std::vector<Particle> particles;
+	int score=0;
+	int stage=0;
+	int warningStage=0;
+
+	V2D randomPtOnEdge(AABB2D a) {
+		float pct=Maths::random();
+		if (pct<0.25f) return V2D(Maths::random(a.min.x, a.max.x), a.min.y);//top
+		else if (pct<0.5f) return V2D(Maths::random(a.min.x, a.max.x), a.max.y);//bottom
+		else if (pct<0.75f) return V2D(a.min.x, Maths::random(a.min.y, a.max.y));//left
+		else return V2D(a.max.x, Maths::random(a.min.y, a.max.y));//right
+	}
+
+	Asteroid randomAsteroid() {
+		float angle=Maths::random(-Maths::PI, Maths::PI);
+		float speed=Maths::random(15, 27);
+		float rad=Maths::random(width/16, width/10);
+		int numPts=Maths::random(16, 21);
+		return Asteroid(randomPtOnEdge(bounds), V2D::fromAngle(angle)*speed, rad, numPts);
+	}
+
+	void randomParticle(V2D pos, Particle& p) {
+		float randAngle=Maths::random(-Maths::PI, Maths::PI);
+		float speed=Maths::random(3, 6);
+		float lifespan=Maths::random(1.6f, 3.8f);
+		V2D vel=V2D::fromAngle(randAngle)*speed;
+		p={pos, vel, lifespan};
+	}
+
+	void setup() override {
+		bounds=AABB2D(0, 0, width, height);
+
+		ship=Ship(V2D(width/2, height/2), 5);
+	}
+
+	void update(float dt) override {
+		//update particles
+		for (int i=0; i<particles.size();i++) {
+			Particle& p=particles.at(i);
+			p.update(dt);
+
+			//"dynamically" clear those too old
+			if (p.isDead()) {
+				particles.erase(particles.begin()+i);
+				i--;
+			}
+		}
+
+		//update bullets
+		for (int i=0; i<bullets.size(); i++) {
+			Bullet& b=bullets.at(i);
+			b.update(dt);
+
+			//"dynamically" clear those offscreen
+			if (b.isOffscreen(bounds)) {
+				bullets.erase(bullets.begin()+i);
+				i--;
+			}
+		}
+
+		//ship movement
+		bool boostKey=getKey(VK_UP);
+		if (boostKey) ship.boost(87.43f);
+		float turnSpeed=2.78f;
+		if (getKey(VK_RIGHT)) ship.turn(turnSpeed*dt);
+		if (getKey(VK_LEFT))  ship.turn(-turnSpeed*dt);
+
+		//ship update
+		ship.update(dt);
+		ship.checkAABB(bounds);
+
+		//update asteroids
+		for (int i=0; i<asteroids.size(); i++) {
+			Asteroid& a=asteroids.at(i);
+			a.update(dt);
+			//when hit edge spawn on other side
+			a.checkAABB(bounds);
+
+			//check asteroid against ship
+			V2D* shipOutline=ship.outline();
+			//compare all ship lines
+			for (int j=0; j<3; j++) {
+				V2D sp0=shipOutline[j];
+				V2D sp1=shipOutline[(j+1)%3];
+				//to all asteroid lines
+				for (int k=0; k<a.numPts; k++) {
+					V2D ap0=a.points[k];
+					V2D ap1=a.points[(k+1)%a.numPts];
+					float* tu=Maths::lineLineIntersection(sp0, sp1, ap0, ap1);
+					if (tu[0]>0&&tu[0]<1&&tu[1]>0&&tu[1]<1) {
+						printf("GAME OVER! You hit an asteroid.");
+						exit(0);
+					}
+				}
+			}
+
+			//check against all other bullets
+			for (int j=0; j<bullets.size(); j++) {
+				Bullet& b=bullets.at(j);
+
+				if (a.containsPt(b.pos)) {
+					//remove bullet
+					bullets.erase(bullets.begin()+j);
+					j--;
+
+					//if we can, split the asteroid
+					int numRand;
+					V2D pos;
+					Asteroid newA, newB;
+					if (a.split(newA, newB)) {
+						asteroids.push_back(newA);
+						asteroids.push_back(newB);
+						//emit some particles for fx
+						numRand=Maths::random(16, 24);
+						pos=newA.pos;
+
+						//increment score
+						score+=8;
+					}
+					else {//when we "fully" break an asteroid
+						//emit more particles
+						numRand=Maths::random(25, 46);
+						pos=a.pos;
+
+						//increment score more
+						score+=24;
+					}
+					for (int k=0; k<numRand; k++) {
+						Particle p;
+						randomParticle(pos, p);
+						particles.push_back(p);
+					}
+
+
+					asteroids.erase(asteroids.begin()+i);
+					i--;
+				}
+			}
+		}
+
+		//limit number of particles spawned
+		if (particleTimer>0.005f) {
+			particleTimer=0;
+			if (boostKey) ship.emitParticle();
+		}
+		particleTimer+=dt;
+
+		//limit number of bullets shot
+		if (bulletTimer>0.4f) {
+			bulletTimer=0;
+			if (getKey(VK_SPACE)) bullets.push_back(ship.getBullet());
+		}
+		bulletTimer+=dt;
+
+		//award points for living longer
+		if (scoreTimer>2) {
+			scoreTimer=0;
+			//based on how "hard" to live
+			score+=asteroids.size();
+		}
+		scoreTimer+=dt;
+
+		//"leveling"
+		if (asteroids.size()==0){
+			//win case
+			if (stage==4) {
+				printf("YOU WIN! You cleared all the asteroids!");
+				exit(1);
+			}
+			//blinking
+			if (warningTimer>0.3f) {
+				//reset
+				warningTimer=0;
+				if (warningStage<9) warningStage++;
+				else {//add asteroids, next stage
+					warningStage=0;
+
+					//add asteroids based on stage
+					for (int i=0; i<(stage+1)*2; i++) asteroids.push_back(randomAsteroid());
+					stage++;
+				}
+			}
+			warningTimer+=dt;
+		}
+	}
+
+	void draw(Raster& rst) override {
+		//background
+		rst.setChar(' ');
+		rst.fillRect(0, 0, width, height);
+
+		//show particles
+		for (Particle& p:particles) {
+			p.show(rst);
+		}
+
+		//show all bullets
+		rst.setChar('L');
+		for (Bullet& b:bullets) {
+			rst.fillRect(b.pos.x-1, b.pos.y-1, 3, 3);
+		}
+
+		//show asteroids
+		rst.setChar('a');
+		for (Asteroid& a:asteroids) {
+			a.show(rst);
+		}
+
+		//show ship
+		rst.setChar('S');
+		ship.show(rst);
+		ship.showParticles(rst);
+
+		if (warningStage%2==1) {
+			rst.setChar(' ');
+			rst.fillRect(width/2-11, height/2-2, 22, 5);
+			rst.setChar('#');
+			rst.drawRect(width/2-11, height/2-2, 22, 5);
+			rst.drawString(width/2-9, height/2, "ASTEROIDS IMCOMING");
+		}
+
+		//show fps
+		rst.setChar(' ');
+		rst.fillRect(0, 0, 10, 3);
+		rst.setColor(Raster::WHITE);
+		rst.drawString(0, 0, "FPS: "+std::to_string((int)framesPerSecond));
+		rst.drawString(0, 1, "score: "+std::to_string(score));
+		rst.drawString(0, 2, "stage: "+std::to_string(stage));
+	}
+};
+
+int main() {
+	srand(time(NULL));
+
+	//init custom graphics engine
+	Demo d=Demo();
+	d.start(8, 8, true);
+
+	return 0;
+}

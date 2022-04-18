@@ -50,8 +50,8 @@ class Demo : public Engine {
 		Raster::DARK_CYAN,
 		Raster::BLUE,
 		Raster::DARK_BLUE,
-		Raster::DARK_MAGENTA,
-		Raster::MAGENTA
+		Raster::MAGENTA,
+		Raster::DARK_MAGENTA
 	};
 	int colorLen=10;
 

@@ -1,5 +1,3 @@
-#include <time.h>
-
 #include "Engine.h"
 #include "escapi.h"
 #include "maths/Maths.h"
@@ -80,8 +78,6 @@ class Demo : public Engine {
 };
 
 int main() {
-	srand(time(NULL));
-
 	//init custom graphics engine
 	Demo d=Demo();
 	d.start(12, 12, true);
