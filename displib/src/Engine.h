@@ -26,8 +26,6 @@ namespace displib {
 
 		virtual void setup();
 
-		virtual void shutdown();
-
 		virtual void update(float dt);
 
 		virtual void draw(Raster& rst);

@@ -3,18 +3,21 @@
 
 Particle::Particle() {
 	this->pos=V2D();
+	this->oldpos=V2D();
 	this->vel=V2D();
 	this->acc=V2D();
 }
 
 Particle::Particle(V2D pos_, float rad_) {
 	this->pos=pos_;
+	this->oldpos=V2D();
 	this->vel=V2D();
 	this->acc=V2D();
 	this->rad=rad_;
 }
 
 void Particle::update(float dt) {
+	this->oldpos=this->pos;
 	this->vel+=this->acc*dt;
 	this->pos+=this->vel*dt;
 	this->acc*=0;

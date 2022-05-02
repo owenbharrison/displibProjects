@@ -4,7 +4,7 @@ using namespace displib;
 #pragma once
 class Particle {
 	public:
-	V2D pos, vel, acc;
+	V2D pos, oldpos, vel, acc;
 	float rad;
 
 	Particle();

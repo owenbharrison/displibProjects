@@ -54,10 +54,6 @@ class Demo : public Engine {
 		camPos=V2D(width/2, height/2);
 	}
 
-	void shutdown() override {
-		lines.clear();
-	}
-
 	void update(float dt) override {
 		//change pos with keys:
 		//move forward and back

@@ -80,15 +80,10 @@ namespace displib {
 			//show chars to screen
 			this->displayRasterToConsole();
 		}
-
-		//shutdown "hook"
-		this->shutdown();
 	}
 
 	//mains (extend these)
 	void Engine::setup() {}
-
-	void Engine::shutdown() {}
 
 	void Engine::update(float dt) {}
 

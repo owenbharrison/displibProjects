@@ -140,10 +140,6 @@ class Demo : public Engine {
 		nextFWTime=Maths::random(0.4f, 1.1f);
 	}
 
-	void shutdown() override {
-		fireworks.clear();
-	}
-
 	void update(float dt) override {
 		//update all fireworks
 		for (int i=0; i<fireworks.size(); i++) {

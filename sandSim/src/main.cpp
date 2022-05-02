@@ -33,10 +33,6 @@ class Demo : public Engine {
 		}
 	}
 
-	void shutdown() override {
-		delete[] particleGrid;
-	}
-
 	void update(float dt) override {
 		//ez funcs
 		auto pgSet=[&](int x, int y, ParticleType pt) { particleGrid[ix(x, y)]=pt; };

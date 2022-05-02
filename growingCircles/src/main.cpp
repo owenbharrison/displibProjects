@@ -41,10 +41,6 @@ class Demo : public Engine {
 	bool addingCircles=true;
 	std::vector<circle> circles;
 
-	void shutdown() override {
-		circles.clear();
-	}
-
 	void update(float dt) override {
 		if (addingCircles&&timer>0.2f) {//try to add circle this often
 			timer=0.0f;

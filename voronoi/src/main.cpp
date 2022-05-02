@@ -56,10 +56,6 @@ class Demo : public Engine {
 		bounds=AABB2D(0, 0, width, height);
 	}
 
-	void shutdown() override {
-		delete[] vnPts;
-	}
-
 	void update(float dt) override {
 		//update all
 		for (int i=0; i<num; i++) {
@@ -122,6 +118,14 @@ class Demo : public Engine {
 			}
 		}
 		delete[] grid;
+
+		rst.setColor(Raster::WHITE);
+		rst.setChar(0x2588);
+		for (int i=0; i<num; i++) {
+			voronoiPt pt=vnPts[i];
+			rst.putPixel(pt.x, pt.y);
+		}
+
 
 		//show fps
 		rst.setChar(' ');

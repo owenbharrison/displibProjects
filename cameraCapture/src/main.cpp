@@ -24,7 +24,6 @@ class Demo : public Engine {
 
 		if (devices==0) {
 			printf("NO DEVICE FOUND");
-			shutdown();
 		}
 
 		capture.mWidth=width;
@@ -34,12 +33,7 @@ class Demo : public Engine {
 		//init capture
 		if (initCapture(0, &capture)==0) {
 			printf("DEVICE IN USE");
-			shutdown();
 		}
-	}
-
-	void shutdown() override {
-		deinitCapture(0);
 	}
 
 	void draw(Raster& rst) override {

@@ -111,7 +111,6 @@ struct Asteroid {
 struct Ship {
 	V2D pos, vel, acc;
 	float rad=0, rot=0;
-	std::vector<Particle> particles;
 
 	Ship() {}
 
@@ -126,16 +125,6 @@ struct Ship {
 		vel+=acc*dt;
 		pos+=vel*dt;
 		acc*=0;
-
-		for (int i=0; i<particles.size(); i++) {
-			Particle& p=particles.at(i);
-			p.update(dt);
-
-			if (p.isDead()) {
-				particles.erase(particles.begin()+i);
-				i--;
-			}
-		}
 	}
 
 	void applyForce(V2D f) {
@@ -164,12 +153,12 @@ struct Ship {
 	}
 
 	//random particle at end of ship
-	void emitParticle() {
+	Particle emitParticle() {
 		float randAngle=Maths::random(-Maths::PI/3, Maths::PI/3);
 		float speed=Maths::random(3, 6);
 		float lifespan=Maths::random(1.6f, 3.8f);
 		V2D vel=V2D::fromAngle(rot+Maths::PI+randAngle)*speed;
-		particles.push_back({pos-V2D::fromAngle(rot+randAngle/2)*rad, vel, lifespan});
+		return {pos-V2D::fromAngle(rot+randAngle/2)*rad, vel, lifespan};
 	}
 
 	V2D* outline() {
@@ -185,10 +174,7 @@ struct Ship {
 	void show(Raster& rst) {
 		V2D* lns=outline();
 		rst.drawTriangle(lns[0].x, lns[0].y, lns[1].x, lns[1].y, lns[2].x, lns[2].y);
-	}
-
-	void showParticles(Raster& rst) {
-		for (Particle& p:particles) p.show(rst);
+		delete[] lns;
 	}
 };
 
@@ -200,8 +186,7 @@ class Demo : public Engine {
 	std::vector<Asteroid> asteroids;
 	std::vector<Bullet> bullets;
 	std::vector<Particle> particles;
-	int score=0;
-	int stage=0;
+	int score=0, stage=0;
 	int warningStage=0;
 
 	V2D randomPtOnEdge(AABB2D a) {
@@ -288,12 +273,15 @@ class Demo : public Engine {
 					V2D ap0=a.points[k];
 					V2D ap1=a.points[(k+1)%a.numPts];
 					float* tu=Maths::lineLineIntersection(sp0, sp1, ap0, ap1);
+					//if even one hits, game over
 					if (tu[0]>0&&tu[0]<1&&tu[1]>0&&tu[1]<1) {
 						printf("GAME OVER! You hit an asteroid.");
 						exit(0);
 					}
+					delete[] tu;
 				}
 			}
+			delete[] shipOutline;
 
 			//check against all other bullets
 			for (int j=0; j<bullets.size(); j++) {
@@ -332,7 +320,6 @@ class Demo : public Engine {
 						particles.push_back(p);
 					}
 
-
 					asteroids.erase(asteroids.begin()+i);
 					i--;
 				}
@@ -342,7 +329,7 @@ class Demo : public Engine {
 		//limit number of particles spawned
 		if (particleTimer>0.005f) {
 			particleTimer=0;
-			if (boostKey) ship.emitParticle();
+			if (boostKey) particles.push_back(ship.emitParticle());
 		}
 		particleTimer+=dt;
 
@@ -410,7 +397,6 @@ class Demo : public Engine {
 		//show ship
 		rst.setChar('S');
 		ship.show(rst);
-		ship.showParticles(rst);
 
 		if (warningStage%2==1) {
 			rst.setChar(' ');
@@ -427,6 +413,8 @@ class Demo : public Engine {
 		rst.drawString(0, 0, "FPS: "+std::to_string((int)framesPerSecond));
 		rst.drawString(0, 1, "score: "+std::to_string(score));
 		rst.drawString(0, 2, "stage: "+std::to_string(stage));
+		rst.drawString(0, 3, "particles: "+std::to_string(particles.size()));
+		rst.drawString(0, 4, "bullets: "+std::to_string(bullets.size()));
 	}
 };
 
