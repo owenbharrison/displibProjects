@@ -149,7 +149,7 @@ class Demo : public Engine {
 int main() {
 	//init custom console engine
 	Demo d=Demo();
-	d.start(8, 8, true);
+	d.startFullscreen(8);
 
 	return 0;
 }

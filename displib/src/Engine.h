@@ -9,7 +9,8 @@ namespace displib {
 		HANDLE consoleHandle;
 		HWND windowHandle;
 		DWORD bytesWritten=0;
-		int charWidth=0, charHeight=0;
+		SMALL_RECT windowRect;
+		int charSize=0;
 		std::chrono::time_point<std::chrono::system_clock> lastCallTime;
 
 		void displayRasterToConsole();
@@ -20,9 +21,15 @@ namespace displib {
 		int mouseX=0, mouseY=0;
 		float framesPerSecond=0.0f, totalDeltaTime=0.0f;
 
+		static void showPopupBox(std::string title, std::string content) {
+			MessageBoxA(0, title.c_str(), content.c_str(), MB_OK);
+		}
+
 		Engine();
 
-		void start(int sx, int sy, bool fullScr);
+		void startFullscreen(int cz);
+
+		void startWindowed(int cz, int w, int h);
 
 		virtual void setup();
 

@@ -7,8 +7,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "displib", "displib\displib.
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "metaballs", "metaballs\metaballs.vcxproj", "{56AC86DA-EB11-4627-B512-B16F25DE50A6}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "polytest", "polytest\polytest.vcxproj", "{B0CC25A4-9332-42F1-8CC3-5F6CBEC5E8BA}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "growingCircles", "growingCircles\growingCircles.vcxproj", "{D10C049D-7A53-42ED-9E59-6D9B34B7CE71}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "voronoi", "voronoi\voronoi.vcxproj", "{DF0330F6-14D7-4B03-AAEF-69EC6BCE836F}"
@@ -75,14 +73,6 @@ Global
 		{56AC86DA-EB11-4627-B512-B16F25DE50A6}.Release|x64.Build.0 = Release|x64
 		{56AC86DA-EB11-4627-B512-B16F25DE50A6}.Release|x86.ActiveCfg = Release|Win32
 		{56AC86DA-EB11-4627-B512-B16F25DE50A6}.Release|x86.Build.0 = Release|Win32
-		{B0CC25A4-9332-42F1-8CC3-5F6CBEC5E8BA}.Debug|x64.ActiveCfg = Debug|x64
-		{B0CC25A4-9332-42F1-8CC3-5F6CBEC5E8BA}.Debug|x64.Build.0 = Debug|x64
-		{B0CC25A4-9332-42F1-8CC3-5F6CBEC5E8BA}.Debug|x86.ActiveCfg = Debug|Win32
-		{B0CC25A4-9332-42F1-8CC3-5F6CBEC5E8BA}.Debug|x86.Build.0 = Debug|Win32
-		{B0CC25A4-9332-42F1-8CC3-5F6CBEC5E8BA}.Release|x64.ActiveCfg = Release|x64
-		{B0CC25A4-9332-42F1-8CC3-5F6CBEC5E8BA}.Release|x64.Build.0 = Release|x64
-		{B0CC25A4-9332-42F1-8CC3-5F6CBEC5E8BA}.Release|x86.ActiveCfg = Release|Win32
-		{B0CC25A4-9332-42F1-8CC3-5F6CBEC5E8BA}.Release|x86.Build.0 = Release|Win32
 		{D10C049D-7A53-42ED-9E59-6D9B34B7CE71}.Debug|x64.ActiveCfg = Debug|x64
 		{D10C049D-7A53-42ED-9E59-6D9B34B7CE71}.Debug|x64.Build.0 = Debug|x64
 		{D10C049D-7A53-42ED-9E59-6D9B34B7CE71}.Debug|x86.ActiveCfg = Debug|Win32

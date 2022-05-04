@@ -94,7 +94,7 @@ class Demo : public Engine {
 int main() {
 	//init custom graphics engine
 	Demo d=Demo();
-	d.start(12, 12, true);
+	d.startFullscreen(12);
 
 	return 0;
 }

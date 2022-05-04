@@ -1,6 +1,6 @@
 #include "Engine.h"
 
-#include "Softbody.h"
+#include "physics/Softbody.h"
 using namespace displib;
 
 struct Stopwatch {
@@ -33,7 +33,7 @@ class Demo : public Engine {
 		float stiff=240.47f;
 		float damp=6.23f;
 		jello.formRectangle(6, 7, AABB2D(width*0.1f, height*0.25f, width*0.3f, height*0.75f), stiff, damp);
-		ball.formEllipse(4, 10, AABB2D(width*0.7f, height*0.4f, width*0.85f, height*0.7f), stiff*1.4, damp);
+		ball.formEllipse(3, 8, AABB2D(width*0.7f, height*0.3f, width*0.85f, height*0.6f), stiff*1.4, damp);
 		cloth.formCloth(16, 8, AABB2D(width*0.3f, 0, width*0.7f, height*0.4f), stiff, damp);
 
 		bounds=AABB2D(0, 0, width, height);
@@ -97,10 +97,7 @@ class Demo : public Engine {
 		ball.renderParticles(rst);
 
 		//show fps
-		rst.setChar(' ');
-		rst.fillRect(0, 0, 10, 2);
-		rst.setColor(Raster::WHITE);
-		rst.drawString(0, 0, "FPS: "+std::to_string((int)framesPerSecond));
+		setTitle("2D SoftBody sim @ "+std::to_string((int)framesPerSecond)+"fps");
 	}
 };
 
@@ -109,7 +106,7 @@ int main() {
 
 	//init custom graphics engine
 	Demo d=Demo();
-	d.start(10, 10, true);
+	d.startWindowed(6, 160, 90);
 
 	return 0;
 }

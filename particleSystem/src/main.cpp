@@ -103,7 +103,7 @@ class Demo : public Engine {
 			p.show(rst);
 		}
 
-		rst.drawString(0, 0, "FPS: "+std::to_string((int)framesPerSecond));
+		setTitle("Simple Particle System @ "+std::to_string((int)framesPerSecond)+"fps");
 	}
 };
 
@@ -112,7 +112,7 @@ int main() {
 
 	//init custom graphics engine
 	Demo d=Demo();
-	d.start(6, 6, true);
+	d.startWindowed(3, 320, 180);
 
 	return 0;
 }

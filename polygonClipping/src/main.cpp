@@ -79,6 +79,8 @@ class Demo : public Engine {
 	}
 
 	void setup() override {
+		setTitle("Simple Polygon Clipping");
+
 		//some randomly sized poly on the screen
 		mainNum=Maths::clamp(rand()%7+3, 3, 10);
 		mainPoly=new V2D[mainNum];
@@ -103,6 +105,7 @@ class Demo : public Engine {
 	void draw(Raster& rst) override {
 		//background
 		rst.setChar(' ');
+		rst.setColor(Raster::WHITE);
 		rst.fillRect(0, 0, width, height);
 
 		//draw polygon
@@ -147,14 +150,6 @@ class Demo : public Engine {
 		//draw clipline pt 2
 		rst.setChar('2');
 		rst.fillRect(ptB.x-1, ptB.y-1, 3, 3);
-
-		//show fps
-		rst.setChar(' ');
-		rst.fillRect(0, 0, 11, 4);
-		rst.setColor(Raster::WHITE);
-		rst.drawString(0, 0, "FPS: "+std::to_string((int)framesPerSecond));
-		rst.drawString(0, 1, std::to_string(mainNum)+" sides");
-		rst.drawString(0, 2, std::to_string(sizeA)+" & "+std::to_string(sizeB));
 	}
 };
 
@@ -163,7 +158,7 @@ int main() {
 
 	//init custom graphics engine
 	Demo d=Demo();
-	d.start(12, 12, true);
+	d.startWindowed(4, 200, 200);
 
 	return 0;
 }

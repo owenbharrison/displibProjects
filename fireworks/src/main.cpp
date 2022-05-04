@@ -208,7 +208,7 @@ int main() {
 
 	//init custom graphics engine
 	Demo d=Demo();
-	d.start(12, 12, true);
+	d.startFullscreen(8);
 
 	return 0;
 }

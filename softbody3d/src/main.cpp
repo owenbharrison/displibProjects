@@ -3,7 +3,7 @@
 #include "geom/AABB3D.h"
 #include <time.h>
 
-#include "Spring.h"
+#include "physics/Spring.h"
 using namespace displib;
 
 V2D projV3D(V3D v, float yaw, float pitch, float zoom) {
@@ -31,7 +31,6 @@ class Demo : public Engine {
 	float camZoom=1;
 
 	void setup() override {
-		grav=V3D(0, -21.0f, 0);
 		ctr=V2D(width/2, height/2);
 		
 		float sz=50;
@@ -39,9 +38,9 @@ class Demo : public Engine {
 
 		float stiff=240.47f;
 		float damp=6.23f;
-		int w=7;
-		int h=13;
-		int d=7;
+		int w=3;
+		int h=5;
+		int d=3;
 		AABB3D bodyBnds(-sz/3, -sz*2/3, -sz/3, sz/3, sz*2/3, sz/3);//body container
 
 		particleNum=w*h*d;
@@ -148,6 +147,8 @@ class Demo : public Engine {
 			particles[i].update(dt);
 			particles[i].constrainIn(bounds);
 		}
+
+		grav.y=Maths::map(sinf(totalDeltaTime), -1, 1, 6, -42);
 	}
 
 	void draw(Raster& rst) override {
@@ -155,21 +156,16 @@ class Demo : public Engine {
 		rst.setChar(' ');
 		rst.fillRect(0, 0, width, height);
 
-		//draw bounds
+		//show springs
 		rst.setChar('.');
-
-
-		//draw springs
-		rst.setChar('*');
 		for (int i=0; i<springNum; i++) {
 			Spring& s=springs[i];
-			V3D a=s.getA().pos;
-			V3D b=s.getB().pos;
-			V2D aProj=projV3D(a, camYaw, camPitch, camZoom)+ctr;
-			V2D bProj=projV3D(b, camYaw, camPitch, camZoom)+ctr;
-			//rst.drawLine(aProj.x, aProj.y, bProj.x, bProj.y);
+			V2D a=projV3D(s.getA().pos, camYaw, camPitch, camZoom)+ctr;
+			V2D b=projV3D(s.getB().pos, camYaw, camPitch, camZoom)+ctr;
+			rst.drawLine(a.x, a.y, b.x, b.y);
 		}
 
+		//show particles
 		rst.setChar('@');
 		for (int i=0; i<particleNum; i++) {
 			Particle& p=particles[i];
@@ -178,11 +174,7 @@ class Demo : public Engine {
 		}
 
 		//show fps
-		rst.setChar(' ');
-		rst.fillRect(0, 0, 15, 4);
-		rst.drawString(0, 0, "FPS: "+std::to_string((int)framesPerSecond));
-		rst.drawString(0, 1, "yaw: "+std::to_string(camYaw));
-		rst.drawString(0, 2, "pitch: "+std::to_string(camPitch));
+		setTitle("3D SoftBody Sim @ "+std::to_string((int)framesPerSecond)+"fps");
 	}
 };
 
@@ -190,7 +182,7 @@ int main() {
 	srand(time(NULL));
 	//init custom graphics engine
 	Demo d=Demo();
-	d.start(6, 6, true);
+	d.startWindowed(6, 90, 110);
 
 	return 0;
 }

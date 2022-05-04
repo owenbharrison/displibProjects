@@ -18,6 +18,8 @@ class Demo : public Engine {
 	float timePerStep=0.01f;
 
 	void setup() override {
+		setTitle("Sand & Water Simulation");
+
 		particleGrid=new ParticleType[width*height];
 
 		//initialize the grid
@@ -137,10 +139,9 @@ class Demo : public Engine {
 
 		//show fps
 		rst.setColor(Raster::WHITE);
-		rst.drawString(0, 0, "FPS: "+std::to_string((int)framesPerSecond));
-		rst.drawString(0, 1, "Barrier: "+std::to_string(numBarrier));
-		rst.drawString(0, 2, "Sand: "+std::to_string(numSand));
-		rst.drawString(0, 3, "Water: "+std::to_string(numWater));
+		rst.drawString(0, 0, "Barrier: "+std::to_string(numBarrier));
+		rst.drawString(0, 1, "Sand: "+std::to_string(numSand));
+		rst.drawString(0, 2, "Water: "+std::to_string(numWater));
 	}
 };
 
@@ -149,7 +150,7 @@ int main() {
 
 	//init custom graphics engine
 	Demo d=Demo();
-	d.start(12, 12, true);
+	d.startWindowed(6, 160, 90);
 
 	return 0;
 }

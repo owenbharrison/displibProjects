@@ -47,6 +47,8 @@ class Demo : public Engine {
 	const int asciiLen=strlen(asciiArr);
 
 	void setup() override {
+		setTitle("Simple Light Bounce Sim");
+
 		int num=6;
 		//randomlt spawn mirrors
 		for (int i=0; i<num; i++) {
@@ -135,12 +137,6 @@ class Demo : public Engine {
 			V2D endPt=ray.origin+ray.dir*maxLength;
 			rst.drawLine(ray.origin.x, ray.origin.y, endPt.x, endPt.y);
 		}
-
-		//show fps
-		rst.setChar(' ');
-		rst.fillRect(0, 0, 10, 2);
-		rst.setColor(Raster::WHITE);
-		rst.drawString(0, 0, "FPS: "+std::to_string((int)framesPerSecond));
 	}
 };
 
@@ -149,7 +145,7 @@ int main() {
 
 	//init custom graphics engine
 	Demo d=Demo();
-	d.start(8, 8, true);
+	d.startWindowed(8, 160, 90);
 
 	return 0;
 }

@@ -25,6 +25,8 @@ class Demo : public Engine {
 	}
 
 	void setup() override {
+		setTitle("Bezier Curves");
+
 		//spread points randomly
 		p0=randomPt();
 		p1=randomPt();
@@ -109,7 +111,7 @@ int main() {
 
 	//init custom graphics engine
 	Demo d=Demo();
-	d.start(10, 10, true);
+	d.startWindowed(4, 200, 200);
 
 	return 0;
 }

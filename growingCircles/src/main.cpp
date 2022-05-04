@@ -96,6 +96,7 @@ class Demo : public Engine {
 	}
 
 	void draw(Raster& rst) override {
+		//clear background
 		rst.setChar(' ');
 		rst.fillRect(0, 0, width, height);
 
@@ -106,6 +107,7 @@ class Demo : public Engine {
 			rst.drawCircle(c.pos.x, c.pos.y, c.rad);
 		}
 
+		//show fps
 		rst.setChar(' ');
 		rst.fillRect(0, 0, 12, 2);
 		rst.setColor(Raster::WHITE);
@@ -117,7 +119,7 @@ int main() {
 	srand(time(NULL));
 
 	Demo d;
-	d.start(8, 8, true);
+	d.startFullscreen(8);
 
 	return 0;
 }

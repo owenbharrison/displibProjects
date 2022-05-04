@@ -18,6 +18,8 @@ class Demo : public Engine {
 	}
 
 	void setup() override {
+		setTitle("Jos Stam Fluid Sim");
+
 		size=(width+2)*(height+2);
 		u=new float[size];
 		v=new float[size];
@@ -229,7 +231,7 @@ class Demo : public Engine {
 int main() {
 	//init custom graphics engine
 	Demo d=Demo();
-	d.start(20, 20, true);
+	d.startWindowed(10, 80, 45);
 
 	return 0;
 }

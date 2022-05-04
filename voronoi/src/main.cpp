@@ -118,20 +118,6 @@ class Demo : public Engine {
 			}
 		}
 		delete[] grid;
-
-		rst.setColor(Raster::WHITE);
-		rst.setChar(0x2588);
-		for (int i=0; i<num; i++) {
-			voronoiPt pt=vnPts[i];
-			rst.putPixel(pt.x, pt.y);
-		}
-
-
-		//show fps
-		rst.setChar(' ');
-		rst.fillRect(0, 0, 10, 2);
-		rst.setColor(Raster::WHITE);
-		rst.drawString(0, 0, "FPS: "+std::to_string((int)framesPerSecond));
 	}
 };
 
@@ -140,7 +126,7 @@ int main() {
 
 	//init custom graphics engine
 	Demo d=Demo();
-	d.start(12, 12, true);
+	d.startFullscreen(8);
 
 	return 0;
 }

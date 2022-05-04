@@ -413,8 +413,6 @@ class Demo : public Engine {
 		rst.drawString(0, 0, "FPS: "+std::to_string((int)framesPerSecond));
 		rst.drawString(0, 1, "score: "+std::to_string(score));
 		rst.drawString(0, 2, "stage: "+std::to_string(stage));
-		rst.drawString(0, 3, "particles: "+std::to_string(particles.size()));
-		rst.drawString(0, 4, "bullets: "+std::to_string(bullets.size()));
 	}
 };
 
@@ -423,7 +421,7 @@ int main() {
 
 	//init custom graphics engine
 	Demo d=Demo();
-	d.start(8, 8, true);
+	d.startFullscreen(8);
 
 	return 0;
 }
