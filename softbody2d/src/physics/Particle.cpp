@@ -16,7 +16,7 @@ Particle::Particle(V2D pos_) {
 void Particle::update(float dt) {
 	this->vel+=this->acc*dt;
 	this->pos+=this->vel*dt;
-	this->acc*=0.0f;
+	this->acc*=0;
 }
 
 void Particle::applyForce(V2D f) {
@@ -27,45 +27,45 @@ void Particle::constrainIn(AABB2D a) {
 	//bounds detection and bounce
 	if (this->pos.x<a.min.x) {
 		this->pos.x=a.min.x;
-		this->vel.x*=-1.0f;
+		this->vel.x*=-1;
 	}
 	if (this->pos.y<a.min.y) {
 		this->pos.y=a.min.y;
-		this->vel.y*=-1.0f;
+		this->vel.y*=-1;
 	}
 	if (this->pos.x>a.max.x) {
 		this->pos.x=a.max.x;
-		this->vel.x*=-1.0f;
+		this->vel.x*=-1;
 	}
 	if (this->pos.y>a.max.y) {
 		this->pos.y=a.max.y;
-		this->vel.y*=-1.0f;
+		this->vel.y*=-1;
 	}
 }
 
 void Particle::constrainOut(AABB2D a) {
 	if (a.containsPt(this->pos)){
 		//bounds detection and bounce
-		float dnx=abs(a.min.x-this->pos.x);
-		float dny=abs(a.min.y-this->pos.y);
-		float dmx=abs(a.max.x-this->pos.x);
-		float dmy=abs(a.max.y-this->pos.y);
+		float dnx=this->pos.x-a.min.x;
+		float dny=this->pos.y-a.min.y;
+		float dmx=a.max.x-this->pos.x;
+		float dmy=a.max.y-this->pos.y;
 		float cl=min(dnx, min(dny, min(dmx, dmy)));
 		if (cl==dnx) {
 			this->pos.x=a.min.x;
-				this->vel.x*=-1.0f;
+			this->vel.x*=-1;
 		}
 		if (cl==dny) {
 			this->pos.y=a.min.y;
-			this->vel.y*=-1.0f;
+			this->vel.y*=-1;
 		}
 		if (cl==dmx) {
 			this->pos.x=a.max.x;
-			this->vel.x*=-1.0f;
+			this->vel.x*=-1;
 		}
 		if (cl==dmy) {
 			this->pos.y=a.max.y;
-			this->vel.y*=-1.0f;
+			this->vel.y*=-1;
 		}
 	}
 }

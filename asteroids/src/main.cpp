@@ -2,7 +2,8 @@
 #include <vector>
 
 #include "Engine.h"
-#include "geom/Poly2D.h"
+#include "geom/AABB2D.h"
+#include "maths/Maths.h"
 using namespace displib;
 
 struct Particle {
@@ -180,14 +181,15 @@ struct Ship {
 
 class Demo : public Engine {
 	public:
-	float particleTimer=0, bulletTimer=0, scoreTimer=0, warningTimer=0;
+	float particleTimer=0, bulletTimer=0, scoreTimer=0, warningTimer=0, endTimer=0;
 	Ship ship;
 	AABB2D bounds;
 	std::vector<Asteroid> asteroids;
 	std::vector<Bullet> bullets;
 	std::vector<Particle> particles;
 	int score=0, stage=0;
-	int warningStage=0;
+	bool won=false, lost=false;
+	int warningStage=0, endStage=0;
 
 	V2D randomPtOnEdge(AABB2D a) {
 		float pct=Maths::random();
@@ -216,7 +218,7 @@ class Demo : public Engine {
 	void setup() override {
 		bounds=AABB2D(0, 0, width, height);
 
-		ship=Ship(V2D(width/2, height/2), 5);
+		ship=Ship(V2D(width/2, height/2), 4);
 	}
 
 	void update(float dt) override {
@@ -244,44 +246,55 @@ class Demo : public Engine {
 			}
 		}
 
-		//ship movement
+		//if "alive"
 		bool boostKey=getKey(VK_UP);
-		if (boostKey) ship.boost(87.43f);
-		float turnSpeed=2.78f;
-		if (getKey(VK_RIGHT)) ship.turn(turnSpeed*dt);
-		if (getKey(VK_LEFT))  ship.turn(-turnSpeed*dt);
+		if (!lost) {
+			//ship movement
+			if (boostKey) ship.boost(87.43f);
+			float turnSpeed=2.78f;
+			if (getKey(VK_RIGHT)) ship.turn(turnSpeed*dt);
+			if (getKey(VK_LEFT))  ship.turn(-turnSpeed*dt);
 
-		//ship update
-		ship.update(dt);
-		ship.checkAABB(bounds);
+			//ship update
+			ship.update(dt);
+			ship.checkAABB(bounds);
+		}
 
 		//update asteroids
+		V2D* shipOutline=ship.outline();
 		for (int i=0; i<asteroids.size(); i++) {
 			Asteroid& a=asteroids.at(i);
 			a.update(dt);
 			//when hit edge spawn on other side
 			a.checkAABB(bounds);
 
-			//check asteroid against ship
-			V2D* shipOutline=ship.outline();
-			//compare all ship lines
-			for (int j=0; j<3; j++) {
-				V2D sp0=shipOutline[j];
-				V2D sp1=shipOutline[(j+1)%3];
-				//to all asteroid lines
-				for (int k=0; k<a.numPts; k++) {
-					V2D ap0=a.points[k];
-					V2D ap1=a.points[(k+1)%a.numPts];
-					float* tu=Maths::lineLineIntersection(sp0, sp1, ap0, ap1);
-					//if even one hits, game over
-					if (tu[0]>0&&tu[0]<1&&tu[1]>0&&tu[1]<1) {
-						printf("GAME OVER! You hit an asteroid.");
-						exit(0);
+			//if "alive"
+			if (!won&&!lost) {
+				bool shipHit=false;
+				//check asteroid against all ship lines
+				for (int j=0; j<3; j++) {
+					V2D sp0=shipOutline[j];
+					V2D sp1=shipOutline[(j+1)%3];
+					//to all asteroid lines
+					for (int k=0; k<a.numPts; k++) {
+						V2D ap0=a.points[k];
+						V2D ap1=a.points[(k+1)%a.numPts];
+						float* tu=Maths::lineLineIntersection(sp0, sp1, ap0, ap1);
+						//if even one hits, game over
+						if (tu[0]>0&&tu[0]<1&&tu[1]>0&&tu[1]<1) shipHit=true;
+						delete[] tu;
 					}
-					delete[] tu;
+				}
+				if (shipHit) {//end game
+					lost=true;
+					int numRand=Maths::random(48, 64);
+					for (int i=0; i<numRand; i++) {
+						Particle p;
+						randomParticle(ship.pos, p);
+						particles.push_back(p);
+					}
 				}
 			}
-			delete[] shipOutline;
 
 			//check against all other bullets
 			for (int j=0; j<bullets.size(); j++) {
@@ -325,51 +338,65 @@ class Demo : public Engine {
 				}
 			}
 		}
+		delete[] shipOutline;
 
-		//limit number of particles spawned
-		if (particleTimer>0.005f) {
-			particleTimer=0;
-			if (boostKey) particles.push_back(ship.emitParticle());
-		}
-		particleTimer+=dt;
+		if (!lost) {
+			//limit number of particles spawned
+			if (particleTimer>0.005f) {
+				particleTimer=0;
+				if (boostKey) particles.push_back(ship.emitParticle());
+			}
+			particleTimer+=dt;
 
-		//limit number of bullets shot
-		if (bulletTimer>0.4f) {
-			bulletTimer=0;
-			if (getKey(VK_SPACE)) bullets.push_back(ship.getBullet());
+			//limit number of bullets shot
+			if (bulletTimer>0.4f) {
+				bulletTimer=0;
+				if (getKey(VK_SPACE)) bullets.push_back(ship.getBullet());
+			}
+			bulletTimer+=dt;
 		}
-		bulletTimer+=dt;
 
-		//award points for living longer
-		if (scoreTimer>2) {
-			scoreTimer=0;
-			//based on how "hard" to live
-			score+=asteroids.size();
+		//if "alive"
+		if (!won&&!lost) {
+			//award points for living longer
+			if (scoreTimer>2) {
+				scoreTimer=0;
+				//based on how "hard" to live
+				score+=asteroids.size();
+			}
+			scoreTimer+=dt;
 		}
-		scoreTimer+=dt;
 
 		//"leveling"
 		if (asteroids.size()==0){
 			//win case
-			if (stage==4) {
-				printf("YOU WIN! You cleared all the asteroids!");
-				exit(1);
-			}
-			//blinking
-			if (warningTimer>0.3f) {
-				//reset
-				warningTimer=0;
-				if (warningStage<9) warningStage++;
-				else {//add asteroids, next stage
-					warningStage=0;
+			if (stage==4) won=true;
+			else {
+				//blinking
+				if (warningTimer>0.3f) {
+					//reset
+					warningTimer=0;
+					if (warningStage<9) warningStage++;
+					else {//add asteroids, next stage
+						warningStage=0;
 
-					//add asteroids based on stage
-					for (int i=0; i<(stage+1)*2; i++) asteroids.push_back(randomAsteroid());
-					stage++;
+						//add asteroids based on stage
+						for (int i=0; i<(stage+1)*2; i++) asteroids.push_back(randomAsteroid());
+						stage++;
+					}
 				}
+				warningTimer+=dt;
 			}
-			warningTimer+=dt;
 		}
+
+		//game over
+		if (won||lost) {
+			if (endTimer>0.6f) {
+				endTimer=0;
+				endStage++;
+			}
+		}
+		endTimer+=dt;
 	}
 
 	void draw(Raster& rst) override {
@@ -394,25 +421,50 @@ class Demo : public Engine {
 			a.show(rst);
 		}
 
-		//show ship
-		rst.setChar('S');
-		ship.show(rst);
+		if (!lost) {
+			//show ship
+			rst.setChar('S');
+			ship.show(rst);
+		}
 
+		//show warning sign
 		if (warningStage%2==1) {
 			rst.setChar(' ');
 			rst.fillRect(width/2-11, height/2-2, 22, 5);
 			rst.setChar('#');
+			rst.setColor(Raster::CYAN);
 			rst.drawRect(width/2-11, height/2-2, 22, 5);
-			rst.drawString(width/2-9, height/2, "ASTEROIDS IMCOMING");
+			rst.drawString(width/2-9, height/2, "ASTEROIDS IMMINENT");
 		}
 
-		//show fps
+		//show endsign
+		if (endStage%2==1) {
+			rst.setChar(' ');
+			rst.fillRect(width/2-11, height/2-2, 22, 5);
+			if (won) {
+				rst.setColor(Raster::GREEN);
+				rst.drawString(width/2-4, height/2-1, "You Win!");
+				std::string str="Score: "+std::to_string(score);
+				rst.drawString(width/2-str.length()/2, height/2+1, str);
+			}
+			if (lost) {
+				rst.setColor(Raster::RED);
+				rst.drawString(width/2-5, height/2-1, "GAME OVER!");
+				rst.drawString(width/2-10, height/2+1, "You hit an asteroid.");
+			}
+			rst.setChar('#');
+			rst.drawRect(width/2-11, height/2-2, 22, 5);
+		}
+
+		//update title
+		setTitle("Asteroids @ "+std::to_string((int)framesPerSecond)+"fps");
+
+		//show stats
 		rst.setChar(' ');
 		rst.fillRect(0, 0, 10, 3);
 		rst.setColor(Raster::WHITE);
-		rst.drawString(0, 0, "FPS: "+std::to_string((int)framesPerSecond));
-		rst.drawString(0, 1, "score: "+std::to_string(score));
-		rst.drawString(0, 2, "stage: "+std::to_string(stage));
+		rst.drawString(0, 0, "Score: "+std::to_string(score));
+		rst.drawString(0, 1, "Stage: "+std::to_string(stage));
 	}
 };
 

@@ -8,10 +8,11 @@ namespace displib {
 		Raster raster;
 		HANDLE consoleHandle;
 		HWND windowHandle;
-		DWORD bytesWritten=0;
 		SMALL_RECT windowRect;
 		int charSize=0;
 		std::chrono::time_point<std::chrono::system_clock> lastCallTime;
+
+		void start();
 
 		void displayRasterToConsole();
 
@@ -19,7 +20,7 @@ namespace displib {
 		int width=0, height=0;
 		int updateCount=0;
 		int mouseX=0, mouseY=0;
-		float framesPerSecond=0.0f, totalDeltaTime=0.0f;
+		float framesPerSecond=0, totalDeltaTime=0;
 
 		static void showPopupBox(std::string title, std::string content) {
 			MessageBoxA(0, title.c_str(), content.c_str(), MB_OK);

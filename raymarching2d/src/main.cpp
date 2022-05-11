@@ -80,7 +80,7 @@ class Demo : public Engine {
 
 	void setup() override {
 		ctr=V2D(width/2, height/2);
-		float sz=12;
+		float sz=16;
 		t={V2D(0, -sz)+ctr, V2D(sz, sz)+ctr, V2D(-sz, sz)+ctr};
 		c={V2D(width/4, height/2), sz};
 		r={V2D(width*3/4, height/2), sz, sz*2};
@@ -139,9 +139,6 @@ class Demo : public Engine {
 		rst.fillRect(checkPt.x-1, checkPt.y-1, 3, 3);
 
 		//show fps
-		rst.setChar(' ');
-		rst.fillRect(0, 0, 10, 2);
-		rst.setColor(Raster::WHITE);
 		rst.drawString(0, 0, "FPS: "+std::to_string((int)framesPerSecond));
 	}
 };
@@ -149,7 +146,7 @@ class Demo : public Engine {
 int main() {
 	//init custom console engine
 	Demo d=Demo();
-	d.startFullscreen(8);
+	d.startFullscreen(6);
 
 	return 0;
 }
