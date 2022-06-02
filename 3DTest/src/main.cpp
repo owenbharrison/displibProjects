@@ -212,16 +212,6 @@ class Demo : public Engine {
 			}
 		}
 
-		if (getKey('G')) {
-			//draw line to light
-			rst.setChar(0x2588);
-			V2D camPt=projV3D(lightPos, camYaw, camPitch, camZoom)+ctr;
-			for (tri& t:trisToDraw) {
-				V2D mid=projV3D(t.getAvgPos(), camYaw, camPitch, camZoom)+ctr;
-				rst.drawLine(mid.x, mid.y, camPt.x, camPt.y);
-			}
-		}
-
 		//show stats
 		rst.drawString(0, 0, "camYaw[LR]: "+std::to_string(camYaw));
 		rst.drawString(0, 1, "camPitch[UD]: "+std::to_string(camPitch));
