@@ -7,8 +7,7 @@ namespace displib {
 		Maths();
 
 		public:
-		static const float PI;
-		static const float TAU;
+		static const float PI, TAU, E;
 
 		static float lerp(float t, float a, float b);
 
@@ -16,11 +15,9 @@ namespace displib {
 
 		static float clamp(float t, float a, float b);
 
-		static float sign(float f);
+		static int sign(float f);
 
 		static float snapTo(float a, float b);
-
-		static float fastInvSqrt(float a);
 
 		static float random();
 

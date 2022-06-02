@@ -6,6 +6,7 @@
 #include "physics/Spring.h"
 using namespace displib;
 
+//i really havent a clue where i got this XD
 V2D projV3D(V3D v, float yaw, float pitch, float zoom) {
 	return V2D(
 		sinf(yaw)*v.x-cosf(yaw)*v.z,
@@ -126,14 +127,7 @@ class Demo : public Engine {
 		if (getKey(VK_UP)) camZoom+=amt*dt;
 		if (getKey(VK_DOWN)) camZoom-=amt*dt;
 		if (camZoom<1) camZoom=1;
-
-		V3D camDir(
-			cosf(camYaw)*sinf(camPitch),
-			cosf(camPitch),
-			sinf(camYaw)*sinf(camPitch)
-		);
 		
-
 		//softbody updating
 
 		//update springs first
@@ -162,7 +156,7 @@ class Demo : public Engine {
 			Spring& s=springs[i];
 			V2D a=projV3D(s.getA().pos, camYaw, camPitch, camZoom)+ctr;
 			V2D b=projV3D(s.getB().pos, camYaw, camPitch, camZoom)+ctr;
-			rst.drawLine(a.x, a.y, b.x, b.y);
+			drawLine(rst, a, b);
 		}
 
 		//show particles
@@ -173,8 +167,39 @@ class Demo : public Engine {
 			rst.putPixel(proj.x, proj.y);
 		}
 
+		//draw bounds
+		float nx=bounds.min.x, ny=bounds.min.y, nz=bounds.min.z;
+		float xx=bounds.max.x, xy=bounds.max.y, xz=bounds.max.z;
+		V2D nnn=projV3D(V3D(nx, ny, nz), camYaw, camPitch, camZoom)+ctr;
+		V2D nnx=projV3D(V3D(nx, ny, xz), camYaw, camPitch, camZoom)+ctr;
+		V2D nxn=projV3D(V3D(nx, xy, nz), camYaw, camPitch, camZoom)+ctr;
+		V2D nxx=projV3D(V3D(nx, xy, xz), camYaw, camPitch, camZoom)+ctr;
+		V2D xnn=projV3D(V3D(xx, ny, nz), camYaw, camPitch, camZoom)+ctr;
+		V2D xnx=projV3D(V3D(xx, ny, xz), camYaw, camPitch, camZoom)+ctr;
+		V2D xxn=projV3D(V3D(xx, xy, nz), camYaw, camPitch, camZoom)+ctr;
+		V2D xxx=projV3D(V3D(xx, xy, xz), camYaw, camPitch, camZoom)+ctr;
+		//top
+		drawLine(rst, nnn, nnx);
+		drawLine(rst, nnx, xnx);
+		drawLine(rst, xnx, xnn);
+		drawLine(rst, xnn, nnn);
+		//verts
+		drawLine(rst, nnn, nxn);
+		drawLine(rst, nnx, nxx);
+		drawLine(rst, xnx, xxx);
+		drawLine(rst, xnn, xxn);
+		//bottom
+		drawLine(rst, nxn, nxx);
+		drawLine(rst, nxx, xxx);
+		drawLine(rst, xxx, xxn);
+		drawLine(rst, xxn, nxn);
+
 		//show fps
 		setTitle("3D SoftBody Sim @ "+std::to_string((int)framesPerSecond)+"fps");
+	}
+
+	void drawLine(Raster& rst, V2D a, V2D b) {
+		rst.drawLine(a.x, a.y, b.x, b.y);
 	}
 };
 

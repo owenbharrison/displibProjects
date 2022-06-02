@@ -107,7 +107,7 @@ class Demo : public Engine {
 };
 
 int main() {
-	srand(time(NULL));
+	//srand(time(NULL));
 
 	//init custom graphics engine
 	Demo d=Demo();

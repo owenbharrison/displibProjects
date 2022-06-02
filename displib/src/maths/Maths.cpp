@@ -1,85 +1,72 @@
 #include "Maths.h"
-#include <cmath>
+#include <math.h>
 #include <time.h>
 
 namespace displib {
+	//simple constants
 	const float Maths::PI=3.1415926f;
-	const float Maths::TAU=Maths::PI*2.0f;
+	const float Maths::TAU=Maths::PI*2;
+	const float Maths::E=2.7182818f;
 
+	//this is a private constructor, dont use.
 	Maths::Maths() {}
-
+	
+	//returns value t "percent(0-1)" between a and b.
 	float Maths::lerp(float t, float a, float b) {
 		return t*(b-a)+a;
 	}
 
+	//maps one range to another, linearly.
 	float Maths::map(float x, float a, float b, float c, float d) {
 		return (x-a)*(d-c)/(b-a)+c;
 	}
 
+	//makes t inside the range a and b.
 	float Maths::clamp(float t, float a, float b) {
 		if (t<a)return a;
 		if (t>b)return b;
 		return t;
 	}
 
-	float Maths::sign(float f) {
+	//gives the integer sign of a number.
+	int Maths::sign(float f) {
 		return f/abs(f);
 	}
 
+	//snaps a to nearest stepped b value.
 	float Maths::snapTo(float a, float b) {
 		return roundf(a/b)*b;
 	}
 
-	float Maths::fastInvSqrt(float n) {
-		const float threehalfs=1.5F;
-		float y=n;
-		long i=*(long*)&y;
-		i=0x5f3759df-(i>>1);
-		y=*(float*)&i;
-		y=y*(threehalfs-((n*0.5F)*y*y));
-		return y;
-	}
-
+	/*returns t and u values for intersection tests.
+	remember to clear mem after this!*/
 	float* Maths::lineLineIntersection(V2D a, V2D b, V2D c, V2D d) {
 		float q=(a.x-b.x)*(c.y-d.y)-(a.y-b.y)*(c.x-d.x);
-		float* tu=new float[2];
-		tu[0]=((a.x-c.x)*(c.y-d.y)-(a.y-c.y)*(c.x-d.x))/q;
-		tu[1]=((b.x-a.x)*(a.y-c.y)-(b.y-a.y)*(a.x-c.x))/q;
-		return tu;
+		return new float[2]{
+			((a.x-c.x)*(c.y-d.y)-(a.y-c.y)*(c.x-d.x))/q,
+			((b.x-a.x)*(a.y-c.y)-(b.y-a.y)*(a.x-c.x))/q
+		};
 	}
 
+	//returns whether the lines [a,b] and [c,d] are intersecting.
 	bool Maths::lineLineIntersect(V2D a, V2D b, V2D c, V2D d) {
-		float* f=Maths::lineLineIntersection(a, b, c, d);
-		return f[0]>=0.0&&f[0]<=1.0&&f[1]>=0.0&&f[1]<=1.0;
+		float* tu=Maths::lineLineIntersection(a, b, c, d);
+		bool ix=tu[0]>=0&&tu[0]<=1&&tu[1]>=0&&tu[1]<=1;
+		delete[] tu;
+		return ix;
 	}
 
-	/*to use Maths::lineLineIntersectPt:
-	V2D* ix=Maths::lineLineIntersectPt(a, b, c, d);
-	if(ix!=nullptr){
-		//there is an intersection
-		//V2D pt = *ix;
-	}
-	else{
-		//no intersect
-	}
-	*/
-	V2D* Maths::lineLineIntersectPt(V2D a, V2D b, V2D c, V2D d) {
-		float* f=Maths::lineLineIntersection(a, b, c, d);
-		if (f[0]>=0.0&&f[0]<=1.0&&f[1]>=0.0&&f[1]<=1.0) {
-			V2D pt=a+(b-a)*f[0];
-			return &pt;
-		}
-		return nullptr;
-	}
-
+	//returns random val in range(0, 1).
 	float Maths::random() {
 		return rand()/32767.0f;
 	}
 
+	//returns random val in range(0, f).
 	float Maths::random(float f) {
 		return Maths::random()*f;
 	}
 
+	//returns random val in range(a, b).
 	float Maths::random(float a, float b) {
 		return a+Maths::random(b-a);
 	}

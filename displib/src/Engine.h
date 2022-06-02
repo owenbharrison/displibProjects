@@ -14,8 +14,6 @@ namespace displib {
 
 		void start();
 
-		void displayRasterToConsole();
-
 		public:
 		int width=0, height=0;
 		int updateCount=0;
@@ -39,6 +37,8 @@ namespace displib {
 		virtual void draw(Raster& rst);
 
 		bool getKey(int k);
+
+		HWND& getWindowHandle();
 
 		void setTitle(std::string str);
 	};

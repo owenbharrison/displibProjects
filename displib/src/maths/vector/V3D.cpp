@@ -2,9 +2,9 @@
 
 namespace displib {
 	V3D::V3D() {
-		this->x=0.0f;
-		this->y=0.0f;
-		this->z=0.0f;
+		this->x=0;
+		this->y=0;
+		this->z=0;
 	}
 	V3D::V3D(float x_, float y_, float z_) {
 		this->x=x_;
@@ -80,7 +80,7 @@ namespace displib {
 
 	V3D V3D::normal() {
 		float f=this->mag();
-		if (f!=0.0f) {//NEVER DIVIDE BY ZERO THIS TOOK ME 3 HRS TO FIX, if - something wrong
+		if (f!=0) {//NEVER DIVIDE BY ZERO THIS TOOK ME 3 HRS TO FIX, if - something wrong
 			this->div(f);
 		}
 		return *this;

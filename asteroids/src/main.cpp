@@ -59,7 +59,7 @@ struct Asteroid {
 		points=new V2D[numPts];
 		for (int i=0; i<numPts; i++) {
 			float angle=((float)i/(float)numPts)*Maths::PI*2;
-			model[i]=V2D::fromAngle(angle)*Maths::random(rad/2, rad);
+			model[i]=V2D::fromAngle(angle)*Maths::random(rad*2/3, rad);
 		}
 	}
 
@@ -80,24 +80,44 @@ struct Asteroid {
 
 	//can or should this be split more?
 	bool split(Asteroid& a, Asteroid& b) {
-		if (numPts<9) return false;
-		a=Asteroid(pos, V2D(-vel.y, vel.x), rad*Maths::random(0.6f, 0.9f), numPts/2);
-		b=Asteroid(pos, V2D(vel.y, -vel.x), rad*Maths::random(0.6f, 0.9f), numPts/2);
+		//if asteroid is too small or not enough pts, dont bother splitting it
+		if (rad<10||numPts<7) return false;
+		float spdA=Maths::random(0.75f, 1), spdB=Maths::random(0.75f, 1);
+		float radA=Maths::random(0.5f, 0.8f), radB=Maths::random(0.5f, 0.8f);
+		a=Asteroid(pos, V2D(-vel.y, vel.x)*spdA, rad*radA, numPts-4);
+		b=Asteroid(pos, V2D(vel.y, -vel.x)*spdB, rad*radB, numPts-4);
 		return true;
+	}
+
+	AABB2D getAABB() {
+		//sort to find extreme points
+		float nx=INFINITY, ny=INFINITY, mx=-INFINITY, my=-INFINITY;
+		for (int i=0; i<numPts; i++) {
+			V2D p=points[i];
+			nx=min(nx, p.x);
+			ny=min(ny, p.y);
+			mx=max(mx, p.x);
+			my=max(my, p.y);
+		}
+		return AABB2D(nx, ny, mx, my);
 	}
 
 	//is pt inside asteroid?
 	bool containsPt(V2D pt) {
-		int numIx=0;
-		for (int i=0; i<numPts; i++) {
-			V2D c=points[i];
-			V2D n=points[(i+1)%numPts];
-			float* tu=Maths::lineLineIntersection(pt, pt+V2D(1, 0), c, n);
-			//ray line intersect
-			if (tu[0]>0&&tu[1]>0&&tu[1]<1) numIx++;
-			delete[] tu;
+		//aabb optimization
+		if (getAABB().containsPt(pt)) {
+			int numIx=0;
+			for (int i=0; i<numPts; i++) {
+				V2D c=points[i];
+				V2D n=points[(i+1)%numPts];
+				float* tu=Maths::lineLineIntersection(pt, pt+V2D(1, 0), c, n);
+				//ray line intersect
+				if (tu[0]>0&&tu[1]>0&&tu[1]<1) numIx++;
+				delete[] tu;
+			}
+			return numIx%2==1;
 		}
-		return numIx%2==1;
+		return false;
 	}
 
 	void show(Raster& rst) {
@@ -172,6 +192,18 @@ struct Ship {
 		};
 	}
 
+	AABB2D getAABB() {
+		V2D* o=outline();
+		V2D a=o[0], b=o[1], c=o[2];
+		delete[] o;
+		return AABB2D(
+			min(a.x, min(b.x, c.x)),
+			min(a.y, min(b.y, c.y)),
+			max(a.x, max(b.x, c.x)),
+			max(a.y, max(b.y, c.y))
+		);
+	}
+
 	void show(Raster& rst) {
 		V2D* lns=outline();
 		rst.drawTriangle(lns[0].x, lns[0].y, lns[1].x, lns[1].y, lns[2].x, lns[2].y);
@@ -190,6 +222,7 @@ class Demo : public Engine {
 	int score=0, stage=0;
 	bool won=false, lost=false;
 	int warningStage=0, endStage=0;
+	bool keyDown=false, debugMode=false;
 
 	V2D randomPtOnEdge(AABB2D a) {
 		float pct=Maths::random();
@@ -203,13 +236,13 @@ class Demo : public Engine {
 		float angle=Maths::random(-Maths::PI, Maths::PI);
 		float speed=Maths::random(15, 27);
 		float rad=Maths::random(width/16, width/10);
-		int numPts=Maths::random(16, 21);
+		int numPts=Maths::random(20, 28);
 		return Asteroid(randomPtOnEdge(bounds), V2D::fromAngle(angle)*speed, rad, numPts);
 	}
 
 	void randomParticle(V2D pos, Particle& p) {
 		float randAngle=Maths::random(-Maths::PI, Maths::PI);
-		float speed=Maths::random(3, 6);
+		float speed=Maths::random(1, 6);
 		float lifespan=Maths::random(1.6f, 3.8f);
 		V2D vel=V2D::fromAngle(randAngle)*speed;
 		p={pos, vel, lifespan};
@@ -222,8 +255,16 @@ class Demo : public Engine {
 	}
 
 	void update(float dt) override {
+		//whether or not to turn on debugMode
+		bool switchKey=getKey('D');
+		if (switchKey&&!keyDown) {
+			keyDown=true;
+			debugMode=!debugMode;
+		}
+		if (!switchKey&&keyDown) keyDown=false;
+
 		//update particles
-		for (int i=0; i<particles.size();i++) {
+		for (int i=0; i<particles.size(); i++) {
 			Particle& p=particles.at(i);
 			p.update(dt);
 
@@ -287,7 +328,7 @@ class Demo : public Engine {
 				}
 				if (shipHit) {//end game
 					lost=true;
-					int numRand=Maths::random(48, 64);
+					int numRand=Maths::random(56, 84);
 					for (int i=0; i<numRand; i++) {
 						Particle p;
 						randomParticle(ship.pos, p);
@@ -313,7 +354,7 @@ class Demo : public Engine {
 						asteroids.push_back(newA);
 						asteroids.push_back(newB);
 						//emit some particles for fx
-						numRand=Maths::random(16, 24);
+						numRand=a.rad*Maths::random(2, 4);
 						pos=newA.pos;
 
 						//increment score
@@ -321,7 +362,7 @@ class Demo : public Engine {
 					}
 					else {//when we "fully" break an asteroid
 						//emit more particles
-						numRand=Maths::random(25, 46);
+						numRand=a.rad*Maths::random(5, 7);
 						pos=a.pos;
 
 						//increment score more
@@ -342,7 +383,7 @@ class Demo : public Engine {
 
 		if (!lost) {
 			//limit number of particles spawned
-			if (particleTimer>0.005f) {
+			if (particleTimer>0.003f) {
 				particleTimer=0;
 				if (boostKey) particles.push_back(ship.emitParticle());
 			}
@@ -368,20 +409,20 @@ class Demo : public Engine {
 		}
 
 		//"leveling"
-		if (asteroids.size()==0){
+		if (asteroids.size()==0) {
 			//win case
 			if (stage==4) won=true;
 			else {
 				//blinking
-				if (warningTimer>0.3f) {
+				if (warningTimer>0.4f) {
 					//reset
 					warningTimer=0;
-					if (warningStage<9) warningStage++;
+					if (warningStage<8) warningStage++;
 					else {//add asteroids, next stage
 						warningStage=0;
 
 						//add asteroids based on stage
-						for (int i=0; i<(stage+1)*2; i++) asteroids.push_back(randomAsteroid());
+						for (int i=0; i<stage*2+1; i++) asteroids.push_back(randomAsteroid());
 						stage++;
 					}
 				}
@@ -391,7 +432,7 @@ class Demo : public Engine {
 
 		//game over
 		if (won||lost) {
-			if (endTimer>0.6f) {
+			if (endTimer>0.7f) {
 				endTimer=0;
 				endStage++;
 			}
@@ -404,7 +445,57 @@ class Demo : public Engine {
 		rst.setChar(' ');
 		rst.fillRect(0, 0, width, height);
 
+		//if debugging
+		if (debugMode) {
+
+			//line to all asteroids
+			rst.setChar('.');
+			rst.setColor(Raster::RED);
+			for (Asteroid& a:asteroids) {
+				V2D u=a.pos;
+				V2D v=ship.pos;
+				rst.drawLine(u.x, u.y, v.x, v.y);
+			}
+
+			//line to all bullets
+			rst.setColor(Raster::GREEN);
+			for (Bullet& b:bullets) {
+				V2D u=b.pos;
+				V2D v=ship.pos;
+				rst.drawLine(u.x, u.y, v.x, v.y);
+			}
+
+			//show asteroids vel
+			rst.setColor(Raster::BLUE);
+			for (Asteroid& a:asteroids) {
+				V2D u=a.pos;
+				V2D v=a.pos+a.vel;
+				rst.drawLine(u.x, u.y, v.x, v.y);
+			}
+
+			//show bullets vel
+			for (Bullet& b:bullets) {
+				V2D u=b.pos;
+				V2D v=b.pos+b.vel;
+				rst.drawLine(u.x, u.y, v.x, v.y);
+			}
+
+			{//show ship vel
+				V2D u=ship.pos;
+				V2D v=ship.pos+ship.vel;
+				rst.drawLine(u.x, u.y, v.x, v.y);
+			}
+
+			//show asteroid bounds
+			rst.setColor(Raster::GREY);
+			for (Asteroid& a:asteroids) a.getAABB().render(rst);
+
+			//show ship bounds
+			ship.getAABB().render(rst);
+		}
+
 		//show particles
+		rst.setColor(Raster::WHITE);
 		for (Particle& p:particles) {
 			p.show(rst);
 		}
@@ -460,11 +551,22 @@ class Demo : public Engine {
 		setTitle("Asteroids @ "+std::to_string((int)framesPerSecond)+"fps");
 
 		//show stats
-		rst.setChar(' ');
-		rst.fillRect(0, 0, 10, 3);
 		rst.setColor(Raster::WHITE);
 		rst.drawString(0, 0, "Score: "+std::to_string(score));
 		rst.drawString(0, 1, "Stage: "+std::to_string(stage));
+
+		//only when debugging
+		if (debugMode) {
+			//display asteroid stats
+			rst.setColor(Raster::DARK_YELLOW);
+			rst.drawString(width-13, 0, "Asteroid Data");
+			for (int i=0; i<asteroids.size(); i++) {
+				Asteroid& a=asteroids.at(i);
+				//show at top right
+				std::string str=std::to_string(i)+": [p: "+a.pos.toStr()+", n: "+std::to_string(a.numPts)+", r: "+std::to_string((int)a.rad)+"]";
+				rst.drawString(width-str.length(), i+1, str);
+			}
+		}
 	}
 };
 

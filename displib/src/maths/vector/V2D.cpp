@@ -3,8 +3,8 @@
 
 namespace displib {
 	V2D::V2D() {
-		this->x=0.0f;
-		this->y=0.0f;
+		this->x=0;
+		this->y=0;
 	}
 	V2D::V2D(float x_, float y_) {
 		this->x=x_;
@@ -60,7 +60,7 @@ namespace displib {
 
 	V2D V2D::normal() {
 		float f=this->mag();
-		if (f!=0.0f) {//NEVER DIVIDE BY ZERO THIS TOOK ME 3 HRS TO FIX, if - something wrong
+		if (f!=0) {//NEVER DIVIDE BY ZERO THIS TOOK ME 3 HRS TO FIX, if - something wrong
 			this->div(f);
 		}
 		return *this;

@@ -1,0 +1,260 @@
+#include <vector>
+#include <strstream> 
+#include <fstream>
+#include <regex>
+#include <algorithm>
+
+#include "Engine.h"
+#include "maths/Maths.h"
+#include "maths/vector/V3D.h"
+using namespace displib;
+
+static std::string FILENAME;
+
+//i really havent a clue where i got this
+//i believe it is x and z matrix rotations, without z
+V2D projV3D(V3D v, float yaw, float pitch, float zoom) {
+	return V2D(
+		sinf(yaw)*v.x-cosf(yaw)*v.z,
+		(cosf(yaw)*v.x+sinf(yaw)*v.z)*cosf(pitch)+sinf(pitch)*v.y
+	)*zoom;
+}
+
+//i didnt want to use a vector of arrays so, this is the "bodge"
+struct triIndex { int a, b, c; };
+struct tri {
+	V3D a, b, c;
+
+	V3D getNorm() {
+		return V3D::normal((b-a).cross(c-a));
+	}
+
+	V3D getAvgPos() {
+		return (a+b+c)/3;
+	}
+};
+
+struct mesh {
+	std::vector<tri> tris;
+
+	//load onj file
+	bool loadFromFile(std::string filename) {
+		std::ifstream file(filename);
+		std::regex triRegex("f ([0-9]+)[/0-9]* ([0-9]+)[/0-9]* ([0-9]+)[/0-9]*$");
+		if (!file.is_open()) return false;
+
+		std::vector<V3D> vtxs;
+		std::vector<triIndex> tIxs;
+
+		//get extreme points
+		float nx=INFINITY, ny=INFINITY, nz=INFINITY;
+		float mx=-INFINITY, my=-INFINITY, mz=-INFINITY;
+		while (!file.eof()) {
+			std::string line;
+			getline(file, line);
+			std::strstream stream;
+			stream<<line;
+			char junk;
+
+			//find vtxs
+			if (line.find("v ")!=std::string::npos) {
+				float x, y, z;
+				stream>>junk>>x>>y>>z;
+				nx=min(nx, x); ny=min(ny, y); nz=min(nz, z);
+				mx=max(mx, x); my=max(my, y); mz=max(mz, z);
+				vtxs.push_back(V3D(x, y, z));
+			}
+
+			//find tris
+			std::smatch triMatches;
+			if (std::regex_match(line, triMatches, triRegex)) {
+				int a, b, c;
+				a=stoi(triMatches[1].str());
+				b=stoi(triMatches[2].str());
+				c=stoi(triMatches[3].str());
+				//obj stores first index as 1, so -1
+				tIxs.push_back({a-1, b-1, c-1});
+			}
+		}
+
+		//center vtxs about (0, 0, 0)
+		V3D modelMid((nx+mx)/2, (ny+my)/2, (nz+mz)/2);
+		for (V3D& v:vtxs) v-=modelMid;
+
+		//get biggest dimension, in one dir (so on 2)
+		float maxDim=max(mx-nx, max(my-ny, mz-nz))/2;
+		//divide by that, "normalize"?
+		for (V3D& v:vtxs) v/=maxDim;
+
+		//use real tri ix info
+		for (triIndex& tIx:tIxs) tris.push_back({vtxs[tIx.a], vtxs[tIx.b], vtxs[tIx.c]});
+		return true;
+	}
+};
+
+class Demo : public Engine {
+	public:
+	V2D ctr;
+	mesh mainMesh;
+	V3D lightPos, camPos;
+
+	bool showOutline=true, showNorm=false;
+	bool oDown=false, nDown=false;
+
+	float camYaw=-0.983478f, camPitch=-1.922638f;
+	float camZoom=80;
+
+	const char* asciiArr=" .,~=#&@";
+
+	void setup() override {
+		mainMesh.loadFromFile(FILENAME);
+
+		ctr=V2D(width/2, height/2);
+
+		lightPos=V3D(1, 1, 1);
+	}
+
+	void update(float dt) override {
+		//update "campos"
+		camPos=V3D(
+			cosf(camYaw)*sinf(camPitch),
+			-cosf(camPitch),
+			sinf(camYaw)*sinf(camPitch)
+		)*5;
+
+		//for switching outline "mode"
+		bool oKey=getKey('O');
+		if (oKey&&!oDown) {
+			oDown=true;
+			showOutline=!showOutline;
+		}
+		if (!oKey&&oDown) oDown=false;
+
+		//for switching norm "mode"
+		bool nKey=getKey('N');
+		if (nKey&&!nDown) {
+			nDown=true;
+			showNorm=!showNorm;
+		}
+		if (!nKey&&nDown) nDown=false;
+
+		//set lighting
+		if (getKey('L')) lightPos=camPos;
+
+		//slow
+		float amt=Maths::PI/2;
+		if (getKey(VK_SHIFT)) amt/=5;
+		//look dir
+		if (getKey('W')) camPitch+=amt*dt;
+		if (getKey('S')) camPitch-=amt*dt;
+		if (getKey('A')) camYaw+=amt*dt;
+		if (getKey('D')) camYaw-=amt*dt;
+		camPitch=Maths::clamp(camPitch, -Maths::PI, 0);
+		//zoom
+		if (getKey(VK_UP)) camZoom+=25*dt;
+		if (getKey(VK_DOWN)) camZoom-=25*dt;
+		if (camZoom<1) camZoom=1;
+
+		//update title
+		std::string triCt=std::to_string(mainMesh.tris.size())+"tris";
+		std::string fpsStr=std::to_string((int)framesPerSecond)+"fps";
+		setTitle("3D Testing ["+FILENAME+"] with "+triCt+" @ "+fpsStr);
+	}
+
+	void draw(Raster& rst) override {
+		//background
+		rst.setChar(' ');
+		rst.fillRect(0, 0, width, height);
+
+		//"optimization" show only front facing tris
+		std::vector<tri> trisToDraw;
+		for (tri& t:mainMesh.tris) {
+			//culling
+			if (t.getNorm().dot(t.a-camPos)<0) {
+				trisToDraw.push_back(t);
+			}
+		}
+
+		//"painters"-ish algo to sort by what is closer to the "camera"
+		sort(trisToDraw.begin(), trisToDraw.end(), [&](tri& a, tri& b) {
+			return (a.getAvgPos()-camPos).mag()>(b.getAvgPos()-camPos).mag();
+		});
+
+		//"project" tris
+		for (tri& t:trisToDraw) {
+			V3D tPos=t.getAvgPos();
+			V3D tNorm=t.getNorm();
+			//diffuse is norm vs lightdir, "direct lighting"
+			V3D dirToLight=V3D::normal(lightPos-tPos);
+			float diffuseShade=tNorm.dot(dirToLight);
+
+			//set tri brightness
+			int asi=Maths::clamp(diffuseShade*8, 0, 7);
+			rst.setChar(asciiArr[asi]);
+
+			//get peojected coords
+			V2D a=projV3D(t.a, camYaw, camPitch, camZoom)+ctr;
+			V2D b=projV3D(t.b, camYaw, camPitch, camZoom)+ctr;
+			V2D c=projV3D(t.c, camYaw, camPitch, camZoom)+ctr;
+			rst.fillTriangle(a.x, a.y, b.x, b.y, c.x, c.y);
+
+			//show wireframe
+			rst.setChar(0x2588);
+			if (showOutline) {
+				rst.drawTriangle(a.x, a.y, b.x, b.y, c.x, c.y);
+			}
+
+			//show tri normals
+			if (showNorm) {
+				V2D mid=projV3D(tPos, camYaw, camPitch, camZoom)+ctr;
+				V2D midEx=projV3D(tPos+tNorm/25, camYaw, camPitch, camZoom)+ctr;
+				rst.drawLine(mid.x, mid.y, midEx.x, midEx.y);
+			}
+		}
+
+		if (getKey('G')) {
+			//draw line to light
+			rst.setChar(0x2588);
+			V2D camPt=projV3D(lightPos, camYaw, camPitch, camZoom)+ctr;
+			for (tri& t:trisToDraw) {
+				V2D mid=projV3D(t.getAvgPos(), camYaw, camPitch, camZoom)+ctr;
+				rst.drawLine(mid.x, mid.y, camPt.x, camPt.y);
+			}
+		}
+
+		//show stats
+		rst.drawString(0, 0, "camYaw[LR]: "+std::to_string(camYaw));
+		rst.drawString(0, 1, "camPitch[UD]: "+std::to_string(camPitch));
+		rst.drawString(0, 2, "camZoom[FB]: "+std::to_string(camZoom));
+	}
+};
+
+int main() {
+	Demo d=Demo();
+
+	//init ofn
+	OPENFILENAME ofn;
+	char szFile[1024];
+	ZeroMemory(&ofn, sizeof(ofn));
+	ofn.lStructSize=sizeof(ofn);
+	ofn.hwndOwner=d.getWindowHandle();
+	ofn.lpstrFile=(LPWSTR)szFile;
+	ofn.lpstrFile[0]='\0';
+	ofn.nMaxFile=sizeof(szFile);
+	ofn.lpstrFilter=L"Wavefront (.obj)\0*.OBJ\0";
+	ofn.nFilterIndex=1;
+	ofn.lpstrFileTitle=NULL;
+	ofn.nMaxFileTitle=0;
+	ofn.lpstrInitialDir=NULL;
+	ofn.Flags=OFN_PATHMUSTEXIST|OFN_FILEMUSTEXIST;
+
+	//if user chooses file, init engine
+	if (GetOpenFileName(&ofn)) {
+		std::wstring wstr(ofn.lpstrFile);
+		FILENAME=std::string(wstr.begin(), wstr.end());
+
+		d.startWindowed(6, 240, 135);
+	}
+
+	return 0;
+}

@@ -2,6 +2,7 @@
 #include <vector>
 
 #include "Engine.h"
+#include "geom/AABB2D.h"
 #include "maths/Maths.h"
 using namespace displib;
 
@@ -34,7 +35,21 @@ struct Particle {
 		acc+=f;
 	}
 
-	//too "old"
+	AABB2D getAABB() {
+		//sort to find extreme points
+		float nx=INFINITY, ny=INFINITY, mx=-INFINITY, my=-INFINITY;
+		for (int i=0; i<sides; i++) {
+			float a0=Maths::map(i, 0, sides, 0, Maths::TAU)+rot;
+			V2D v0=V2D::fromAngle(a0)*rad+pos;
+			nx=min(nx, v0.x);
+			ny=min(ny, v0.y);
+			mx=max(mx, v0.x);
+			my=max(my, v0.y);
+		}
+		return AABB2D(nx, ny, mx, my);
+	}
+
+	//if too "old"
 	bool isDead() {
 		return age>lifeSpan;
 	}
@@ -44,6 +59,7 @@ struct Particle {
 		float pct=Maths::map(age, 0, lifeSpan, 1, 0);
 		int asi=Maths::clamp(pct*8, 0, 7);
 		rst.setChar(" .,~=#&@"[asi]);
+		//polar to cartesian madness
 		for (int i=0; i<sides; i++) {
 			float a0=Maths::map(i, 0, sides, 0, Maths::TAU)+rot;
 			float a1=Maths::map((i+1)%sides, 0, sides, 0, Maths::TAU)+rot;
@@ -58,6 +74,8 @@ class Demo : public Engine {
 	public:
 	V2D grav;
 	float timer=0;
+	bool keyDown=false;
+	bool showBounds=false;
 	std::vector<Particle> particles;
 
 	void setup() override {
@@ -65,29 +83,42 @@ class Demo : public Engine {
 	}
 
 	void update(float dt) override {
-		for (int i=0; i<particles.size();i++) {
+		//check to see if we show bounds
+		bool switchKey=getKey(VK_RETURN);
+		if (switchKey&&!keyDown) {
+			keyDown=true;
+			showBounds=!showBounds;
+		}
+		if (!switchKey&&keyDown) keyDown=false;
+
+		//update particles
+		for (int i=0; i<particles.size(); i++) {
 			Particle& p=particles.at(i);
 
 			p.applyForce(grav);
 
 			p.update(dt);
 
+			//"dynamically" remove "dead" particles
 			if (p.isDead()) {
 				particles.erase(particles.begin()+i);
 				i--;
 			}
 		}
 
+		//every so often
 		if (timer>0.05) {
 			timer=0;
 
+			//when holding space
 			if (getKey(VK_SPACE)) {
+				//spawn new random particle
 				float angle=Maths::random(-Maths::PI, Maths::PI);
 				float speed=Maths::random(17, 35);
 				V2D vel=V2D::fromAngle(angle)*speed;
-				float rad=Maths::random(3, 6);
-				int sides=Maths::random(3, 6);//tri, quad, or penta
-				float lifeSpan=Maths::random(3, 6); 
+				float rad=Maths::random(4, 9);
+				int sides=Maths::random(3, 7);//tri, quad, penta, or hexa
+				float lifeSpan=Maths::random(3, 6);
 				float rotSpeed=Maths::random(2, 6)*(Maths::random()>0.5f?-1:1);
 				particles.push_back(Particle(V2D(mouseX, mouseY), vel, rad, sides, lifeSpan, rotSpeed));
 			}
@@ -96,13 +127,21 @@ class Demo : public Engine {
 	}
 
 	void draw(Raster& rst) override {
+		//show background
 		rst.setChar(' ');
 		rst.fillRect(0, 0, width, height);
 
 		for (Particle& p:particles) {
+			//show particle
 			p.show(rst);
+
+			if (showBounds) {
+				//show bounds 
+				p.getAABB().render(rst);
+			}
 		}
 
+		//update title
 		setTitle("Simple Particle System @ "+std::to_string((int)framesPerSecond)+"fps");
 	}
 };

@@ -47,7 +47,7 @@ namespace displib {
 			this->draw(this->raster);
 
 			//show chars to screen
-			this->displayRasterToConsole();
+			WriteConsoleOutput(this->consoleHandle, this->raster.getBuffer(), {(short)this->width, (short)this->height}, {0, 0}, &windowRect);
 		}
 	}
 
@@ -125,15 +125,11 @@ namespace displib {
 
 	void Engine::draw(Raster& rst) {}
 
-	//ease of use
+	//a bool whether said key is pressed down
 	bool Engine::getKey(int k) { return GetAsyncKeyState(k); }
 
-	void Engine::setTitle(std::string str) {
-		SetConsoleTitleA(str.c_str());
-	}
+	HWND& Engine::getWindowHandle() { return this->windowHandle; }
 
-	//displays raster in text to console window
-	void Engine::displayRasterToConsole() {
-		WriteConsoleOutput(this->consoleHandle, this->raster.getBuffer(), {(short)this->width, (short)this->height}, {0, 0}, &windowRect);
-	}
+	//sets window title text
+	void Engine::setTitle(std::string str) { SetConsoleTitleA(str.c_str()); }
 }
