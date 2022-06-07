@@ -146,14 +146,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp" />
-    <ClCompile Include="src\physics\Particle.cpp" />
-    <ClCompile Include="src\physics\Softbody.cpp" />
-    <ClCompile Include="src\physics\Spring.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="src\physics\Particle.h" />
-    <ClInclude Include="src\physics\Softbody.h" />
-    <ClInclude Include="src\physics\Spring.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

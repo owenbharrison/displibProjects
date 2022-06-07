@@ -2,18 +2,78 @@
 
 #include "Engine.h"
 
-#include "physics/Softbody.h"
+#include "geom/AABB2D.h"
 #include "maths/Maths.h"
 using namespace displib;
 
-struct Poly {
+struct ptc {
+	V2D pos, vel, acc;
+
+	ptc() {}
+
+	ptc(V2D pos_) {
+		pos=pos_;
+		vel=V2D();
+		acc=V2D();
+	}
+
+	void update(float dt) {
+		vel+=acc*dt;
+		pos+=vel*dt;
+		acc*=0;
+	}
+
+	void applyForce(V2D f) { acc+=f; }
+
+	void show(Raster& rst) { rst.putPixel(pos.x, pos.y); }
+};
+
+struct spr {
+	ptc* a=nullptr, * b=nullptr;
+	float restLen=0, stiff=0, damp=0;
+
+	spr() {}
+
+	spr(ptc& a_, ptc& b_, float stiff_, float damp_) {
+		a=&a_;
+		b=&b_;
+		restLen=(getA().pos-getB().pos).mag();
+		stiff=stiff_;
+		damp=damp_;
+	}
+
+	ptc& getA() { return *a; }
+	ptc& getB() { return *b; }
+
+	V2D calcForce() {
+		V2D sub=getB().pos-getA().pos;
+		V2D dir=V2D::normal(sub);
+		float Fs=stiff*(sub.mag()-restLen);
+		float Fd=dir.dot(getB().vel-getA().vel)*damp;
+		return dir*(Fs+Fd);
+	}
+
+	void update() {
+		V2D f=calcForce();
+		getA().applyForce(f);
+		getB().applyForce(f*-1.0f);
+	}
+
+	void show(Raster& rst) {
+		V2D a=getA().pos;
+		V2D b=getB().pos;
+		rst.drawLine(a.x, a.y, b.x, b.y);
+	}
+};
+
+struct poly {
 	V2D pos;
 	float angle=0;
 	int num=0;
 	V2D* mod=nullptr;
 	V2D* pts=nullptr;
 
-	void makeRect(V2D pos_, float w, float h, float angle_) {
+	poly(V2D pos_, float w, float h, float angle_) {
 		pos=pos_;
 		angle=angle_;
 
@@ -25,6 +85,8 @@ struct Poly {
 			V2D(-w/2, h/2)
 		};
 		pts=new V2D[4];
+
+		updatePts();
 	}
 
 	void updatePts() {
@@ -62,6 +124,7 @@ struct Poly {
 				V2D b=pts[(i+1)%num];
 				float* tu=Maths::lineLineIntersection(a, b, pt, pt+V2D(1, 0));
 				if (tu[0]>=0&&tu[0]<=1&&tu[1]>=0) numIx++;
+				delete[] tu;
 			}
 			//odd num of ix
 			if (numIx%2==1) {
@@ -93,7 +156,7 @@ struct Poly {
 		return false;
 	}
 
-	void render(Raster& rst) {
+	void show(Raster& rst) {
 		for (int i=0; i<num; i++) {
 			V2D a=pts[i];
 			V2D b=pts[(i+1)%num];
@@ -106,64 +169,99 @@ struct Poly {
 class Demo : public Engine {
 	public:
 	V2D grav;
-	AABB2D mouseBox;
-	Softbody jello;
+	int ptcNum=0;
+	ptc* ptcs={};
+	int sprNum=0;
+	spr* sprs={};
 	float totalUpdateTime=0;
-	std::vector<Poly> polys;
+	std::vector<poly> polys;
 
 	V2D reflectVec(V2D d, V2D n) {
 		return d-n*d.dot(n)*2;
 	}
 
 	void setup() override {
-		grav=V2D(0, 21);
+		grav=V2D(0, 32);
 
-		float stiff=460.47f;
-		float damp=6.23f;
-		jello.formRectangle(7, 8, AABB2D(width*5/7, 0, width*6/7, height/4), stiff, damp);
+		//make softbody
+		float stiff=560.47f;
+		float damp=4.23f;
+		int w=7;
+		int h=5;
+		auto ix=[&](int i, int j) { return i+j*w; };
+		ptcNum=w*h;
+		ptcs=new ptc[ptcNum];
+		for (int i=0; i<w; i++) {
+			for (int j=0; j<h; j++) {
+				//evenly distribute
+				float x=Maths::map(i, 0, w-1, width/5, width/3);
+				float y=Maths::map(j, 0, h-1, height/8, height/4);
+				ptcs[ix(i, j)]=ptc(V2D(x, y));
+			}
+		}
 
-		polys.push_back({});
-		polys.at(0).makeRect(V2D(width*3/4, height*3/5), width/3, height/11, -Maths::PI/9);
-		polys.at(0).updatePts();
+		//connect axis aligned springs
+		int k=0;
+		//complex index maths worked out by hand
+		sprNum=4*w*h-3*w-3*h+2;
+		sprs=new spr[sprNum];
+		for (int i=0; i<w; i++) {
+			for (int j=0; j<h; j++) {
+				//connect right if can
+				if (i<w-1) sprs[k++]=spr(ptcs[ix(i, j)], ptcs[ix(i+1, j)], stiff, damp);
+				//connect down if can
+				if (j<h-1) sprs[k++]=spr(ptcs[ix(i, j)], ptcs[ix(i, j+1)], stiff, damp);
+			}
+		}
+		//connect diags springs
+		for (int i=0; i<w-1; i++) {
+			for (int j=0; j<h-1; j++) {
+				//connect to opposite corners
+				sprs[k++]=spr(ptcs[ix(i, j)], ptcs[ix(i+1, j+1)], stiff, damp);
+				sprs[k++]=spr(ptcs[ix(i+1, j)], ptcs[ix(i, j+1)], stiff, damp);
+			}
+		}
 
-		polys.push_back({});
-		polys.at(1).makeRect(V2D(width/2, height*7/8), width/2, height/11, 0);
-		polys.at(1).updatePts();
+		//add polys to "scene"
+		polys.clear();
+		//left slant
+		polys.push_back(poly(V2D(width/3, height*2/5), width/3, height/12, Maths::PI/11));
 
-		polys.push_back({});
-		polys.at(2).makeRect(V2D(width/4, height/2), width/24, height/2, 0);
-		polys.at(2).updatePts();
+		//right slant
+		polys.push_back(poly(V2D(width*3/4, height*5/9), width/3, height/11, -Maths::PI/6));
 
-		updateMouseBox();
-	}
-
-	void updateMouseBox() {
-		mouseBox=AABB2D(mouseX-10, mouseY-8, mouseX+8, mouseY+10);
+		//bottom
+		polys.push_back(poly(V2D(width*3/7, height*6/7), width/2, height/11, Maths::PI/13));
 	}
 
 	void update(float dt) override {
-		if (getKey(VK_SPACE)) updateMouseBox();
+		//add grav to particles
+		for (int i=0; i<ptcNum; i++) ptcs[i].applyForce(grav);
 
-		//add grav to all particles
-		jello.applyForce(grav);
+		//check each poly v particle, resolve collision
+		for (int i=0; i<ptcNum; i++) {
+			ptc& p=ptcs[i];
 
-		//use euler explicit on all particles
-
-		for (int i=0; i<jello.particleNum; i++) {
-			Particle& ptc=jello.particles[i];
-
-			for (Poly& ply:polys) {
+			for (poly& ply:polys) {
 				V2D pos, norm;
-				if (ply.getClosestPt(ptc.pos, pos, norm)) {
-					ptc.pos=pos;
-					ptc.vel=reflectVec(ptc.vel, norm);
+				if (ply.getClosestPt(p.pos, pos, norm)) {
+					p.pos=pos;
+					p.vel=reflectVec(p.vel, norm);
 				}
 			}
 		}
-		jello.update(dt);
 
-		//make sure we are in the screen, out of the mouseBox
-		jello.constrainOut(mouseBox);
+		//update springs
+		for (int i=0; i<sprNum; i++) sprs[i].update();
+
+		//euler explicit for particles
+		for (int i=0; i<ptcNum; i++) ptcs[i].update(dt);
+
+		bool allOut=true;
+		for (int i=0; i<ptcNum; i++) {
+			if (ptcs[i].pos.y<height) allOut=false;
+		}
+		if (allOut) setup();
 	}
 
 	void draw(Raster& rst) override {
@@ -171,17 +269,17 @@ class Demo : public Engine {
 		rst.setChar(' ');
 		rst.fillRect(0, 0, width, height);
 
+		//draw polys
 		rst.setChar('#');
-		mouseBox.render(rst);
-		for (Poly& p:polys) p.render(rst);
+		for (poly& p:polys) p.show(rst);
 
 		//draw springs
 		rst.setChar('j');
-		jello.renderSprings(rst);
+		for (int i=0; i<sprNum; i++) sprs[i].show(rst);
 
 		//draw particles
 		rst.setChar('*');
-		jello.renderParticles(rst);
+		for (int i=0; i<ptcNum; i++) ptcs[i].show(rst);
 
 		//show fps
 		setTitle("2D SoftBody sim @ "+std::to_string((int)framesPerSecond)+"fps");

@@ -192,7 +192,7 @@ class Demo : public Engine {
 			int asi=Maths::clamp(diffuseShade*8, 0, 7);
 			rst.setChar(asciiArr[asi]);
 
-			//get peojected coords
+			//get projected coords
 			V2D a=projV3D(t.a, camYaw, camPitch, camZoom)+ctr;
 			V2D b=projV3D(t.b, camYaw, camPitch, camZoom)+ctr;
 			V2D c=projV3D(t.c, camYaw, camPitch, camZoom)+ctr;
