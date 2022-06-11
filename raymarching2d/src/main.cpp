@@ -35,7 +35,7 @@ struct tri {
 	}
 
 	void render(Raster& rst) {
-		rst.drawTriangle(a.x, a.y, b.x, b.y, c.x, c.y);
+		rst.drawTriangle(a, b, c);
 	}
 };
 
@@ -66,7 +66,7 @@ struct circle {
 	}
 
 	void render(Raster& rst) {
-		rst.drawCircle(pos.x, pos.y, rad);
+		rst.drawCircle(pos, rad);
 	}
 };
 
@@ -114,7 +114,7 @@ class Demo : public Engine {
 
 			//if close to or inside shape, exit
 			if (sceneDist<1) break;
-			rst.drawCircle(checkPt.x, checkPt.y, sceneDist);
+			rst.drawCircle(checkPt, sceneDist);
 
 			//add to total dist
 			totalDist+=sceneDist;
@@ -124,7 +124,7 @@ class Demo : public Engine {
 		//draw line to final pt
 		rst.setChar('#');
 		rst.setColor(Raster::RED);
-		rst.drawLine(mouseVec.x, mouseVec.y, checkPt.x, checkPt.y);
+		rst.drawLine(mouseVec, checkPt);
 
 		//show REAL shapes
 		rst.setChar('@');

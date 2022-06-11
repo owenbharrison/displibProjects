@@ -7,7 +7,7 @@ using namespace displib;
 
 struct Metaball {
 	V2D pos, vel;
-	float rad=0.0f;
+	float rad=0;
 
 	void update(float dt) {
 		//euler explicit integ.
@@ -16,22 +16,10 @@ struct Metaball {
 
 	void checkAABB(AABB2D a) {
 		//bounds detect with bouncing
-		if (pos.x<a.min.x) {
-			pos.x=a.min.x;
-			vel.x*=-1.0f;
-		}
-		if (pos.y<a.min.y) {
-			pos.y=a.min.y;
-			vel.y*=-1.0f;
-		}
-		if (pos.x>a.max.x) {
-			pos.x=a.max.x;
-			vel.x*=-1.0f;
-		}
-		if (pos.y>a.max.y) {
-			pos.y=a.max.y;
-			vel.y*=-1.0f;
-		}
+		if (pos.x<a.min.x) { pos.x=a.min.x; vel.x*=-1; }
+		if (pos.y<a.min.y) { pos.y=a.min.y; vel.y*=-1; }
+		if (pos.x>a.max.x) { pos.x=a.max.x; vel.x*=-1; }
+		if (pos.y>a.max.y) { pos.y=a.max.y; vel.y*=-1; }
 	}
 };
 

@@ -25,7 +25,7 @@ struct ptc {
 
 	void applyForce(V2D f) { acc+=f; }
 
-	void show(Raster& rst) { rst.putPixel(pos.x, pos.y); }
+	void show(Raster& rst) { rst.putPixel(pos); }
 };
 
 struct spr {
@@ -56,13 +56,13 @@ struct spr {
 	void update() {
 		V2D f=calcForce();
 		getA().applyForce(f);
-		getB().applyForce(f*-1.0f);
+		getB().applyForce(f*-1);
 	}
 
 	void show(Raster& rst) {
 		V2D a=getA().pos;
 		V2D b=getB().pos;
-		rst.drawLine(a.x, a.y, b.x, b.y);
+		rst.drawLine(a, b);
 	}
 };
 
@@ -160,9 +160,9 @@ struct poly {
 		for (int i=0; i<num; i++) {
 			V2D a=pts[i];
 			V2D b=pts[(i+1)%num];
-			rst.drawLine(a.x, a.y, b.x, b.y);
+			rst.drawLine(a, b);
 		}
-		rst.putPixel(pos.x, pos.y);
+		rst.putPixel(pos);
 	}
 };
 

@@ -3,10 +3,20 @@
 
 #include "Engine.h"
 #include "maths/Maths.h"
+#include "maths/vector/V3D.h"
 using namespace displib;
 
 #include <noise/noise.h>
 using namespace noise;
+
+//i really havent a clue where i got this
+//i believe it is x and z matrix rotations, without z
+V2D projV3D(V3D v, float yaw, float pitch, float zoom) {
+	return V2D(
+		sinf(yaw)*v.x-cosf(yaw)*v.z,
+		(cosf(yaw)*v.x+sinf(yaw)*v.z)*cosf(pitch)+sinf(pitch)*v.y
+	)*zoom;
+}
 
 class Demo : public Engine {
 	public:
@@ -45,7 +55,6 @@ class Demo : public Engine {
 	}
 
 	void draw(Raster& rst) override {
-		auto line=[&](V2D a, V2D b) {rst.drawLine(a.x, a.y, b.x, b.y); };
 		//background
 		rst.setChar(' ');
 		rst.fillRect(0, 0, width, height);
@@ -77,14 +86,14 @@ class Demo : public Engine {
 				V2D l(x, y+res/2);
 				V2D r(x+res, y+res/2);
 				switch (bl+br*2+tr*4+tl*8) {
-					case 1: case 14: line(l, b); break;
-					case 2: case 13: line(r, b); break;
-					case 3: case 12: line(l, r); break;
-					case 4: case 11: line(t, r); break;
-					case 5: line(t, l); line(r, b); break;
-					case 6: case 9: line(t, b); break;
-					case 7: case 8: line(t, l); break;
-					case 10: line(t, r); line(l, b); break;
+					case 1: case 14: rst.drawLine(l, b); break;
+					case 2: case 13: rst.drawLine(r, b); break;
+					case 3: case 12: rst.drawLine(l, r); break;
+					case 4: case 11: rst.drawLine(t, r); break;
+					case 5: rst.drawLine(t, l); rst.drawLine(r, b); break;
+					case 6: case 9: rst.drawLine(t, b); break;
+					case 7: case 8: rst.drawLine(t, l); break;
+					case 10: rst.drawLine(t, r); rst.drawLine(l, b); break;
 				}
 			}
 		}

@@ -73,7 +73,7 @@ class Demo : public Engine {
 			for (int j=i+1; j<numPts; j++) {
 				V2D a=pts[i];
 				V2D b=pts[j];
-				rst.drawLine(a.x, a.y, b.x, b.y);
+				rst.drawLine(a, b);
 			}
 		}
 	}
@@ -114,7 +114,7 @@ class Demo : public Engine {
 		for (int i=0; i<mainNum; i++) {
 			V2D a=mainPoly[i];
 			V2D b=mainPoly[(i+1)%mainNum];
-			rst.drawLine(a.x, a.y, b.x, b.y);
+			rst.drawLine(a, b);
 		}
 
 		//"clip" polygon
@@ -140,7 +140,7 @@ class Demo : public Engine {
 		//draw the clipline
 		rst.setChar('c');
 		rst.setColor(Raster::GREEN);
-		rst.drawLine(ptA.x, ptA.y, ptB.x, ptB.y);
+		rst.drawLine(ptA, ptB);
 
 		//draw clipline pt 1
 		rst.setChar('1');

@@ -54,7 +54,7 @@ struct Particle {
 		return age>lifeSpan;
 	}
 
-	void show(Raster& rst) {
+	void render(Raster& rst) {
 		//ramp to show how "young" or "vibrant"
 		float pct=Maths::map(age, 0, lifeSpan, 1, 0);
 		int asi=Maths::clamp(pct*8, 0, 7);
@@ -65,7 +65,7 @@ struct Particle {
 			float a1=Maths::map((i+1)%sides, 0, sides, 0, Maths::TAU)+rot;
 			V2D v0=V2D::fromAngle(a0)*rad+pos;
 			V2D v1=V2D::fromAngle(a1)*rad+pos;
-			rst.drawLine(v0.x, v0.y, v1.x, v1.y);
+			rst.drawLine(v0, v1);
 		}
 	}
 };
@@ -133,7 +133,7 @@ class Demo : public Engine {
 
 		for (Particle& p:particles) {
 			//show particle
-			p.show(rst);
+			p.render(rst);
 
 			if (showBounds) {
 				//show bounds 

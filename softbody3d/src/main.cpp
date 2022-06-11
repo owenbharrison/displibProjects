@@ -312,20 +312,20 @@ class Demo : public Engine {
 		V2D xxn=projV3D(V3D(xx, xy, nz), camYaw, camPitch, camZoom)+ctr;
 		V2D xxx=projV3D(V3D(xx, xy, xz), camYaw, camPitch, camZoom)+ctr;
 		//top
-		drawLine(rst, nnn, nnx);
-		drawLine(rst, nnx, xnx);
-		drawLine(rst, xnx, xnn);
-		drawLine(rst, xnn, nnn);
+		rst.drawLine(nnn, nnx);
+		rst.drawLine(nnx, xnx);
+		rst.drawLine(xnx, xnn);
+		rst.drawLine(xnn, nnn);
 		//verts
-		drawLine(rst, nnn, nxn);
-		drawLine(rst, nnx, nxx);
-		drawLine(rst, xnx, xxx);
-		drawLine(rst, xnn, xxn);
+		rst.drawLine(nnn, nxn);
+		rst.drawLine(nnx, nxx);
+		rst.drawLine(xnx, xxx);
+		rst.drawLine(xnn, xxn);
 		//bottom
-		drawLine(rst, nxn, nxx);
-		drawLine(rst, nxx, xxx);
-		drawLine(rst, xxx, xxn);
-		drawLine(rst, xxn, nxn);
+		rst.drawLine(nxn, nxx);
+		rst.drawLine(nxx, xxx);
+		rst.drawLine(xxx, xxn);
+		rst.drawLine(xxn, nxn);
 
 		//"optimization" show only front facing tris
 		std::vector<tri> trisToDraw;
@@ -357,20 +357,16 @@ class Demo : public Engine {
 			V2D a=projV3D(t.getA().pos, camYaw, camPitch, camZoom)+ctr;
 			V2D b=projV3D(t.getB().pos, camYaw, camPitch, camZoom)+ctr;
 			V2D c=projV3D(t.getC().pos, camYaw, camPitch, camZoom)+ctr;
-			rst.fillTriangle(a.x, a.y, b.x, b.y, c.x, c.y);
+			rst.fillTriangle(a, b, c);
 
 			if (showOutline) {
 				rst.setChar(0x2588);
-				rst.drawTriangle(a.x, a.y, b.x, b.y, c.x, c.y);
+				rst.drawTriangle(a, b, c);
 			}
 		}
 
 		//show fps
 		setTitle("3D SoftBody Sim @ "+std::to_string((int)framesPerSecond)+"fps");
-	}
-
-	void drawLine(Raster& rst, V2D a, V2D b) {
-		rst.drawLine(a.x, a.y, b.x, b.y);
 	}
 };
 

@@ -20,12 +20,12 @@ struct Particle {
 		return age>lifespan;
 	}
 
-	void show(Raster& rst) {
+	void render(Raster& rst) {
 		//ramp to show how "young" or "vibrant"
 		float pct=age/lifespan;
 		int asi=Maths::clamp(pct*8, 0, 7);
 		rst.setChar("@&#=~,. "[asi]);
-		rst.putPixel(pos.x, pos.y);
+		rst.putPixel(pos);
 	}
 };
 
@@ -39,6 +39,10 @@ struct Bullet {
 	//is out of bounds?
 	bool isOffscreen(AABB2D a) {
 		return !a.containsPt(pos);
+	}
+
+	void render(Raster& rst) {
+		rst.fillRect(pos.x-1, pos.y-1, 3, 3);
 	}
 };
 
@@ -120,11 +124,11 @@ struct Asteroid {
 		return false;
 	}
 
-	void show(Raster& rst) {
+	void render(Raster& rst) {
 		for (int i=0; i<numPts; i++) {
 			V2D a=points[i];
 			V2D b=points[(i+1)%numPts];
-			rst.drawLine(a.x, a.y, b.x, b.y);
+			rst.drawLine(a, b);
 		}
 	}
 };
@@ -204,9 +208,9 @@ struct Ship {
 		);
 	}
 
-	void show(Raster& rst) {
+	void render(Raster& rst) {
 		V2D* lns=outline();
-		rst.drawTriangle(lns[0].x, lns[0].y, lns[1].x, lns[1].y, lns[2].x, lns[2].y);
+		rst.drawTriangle(lns[0], lns[1], lns[2]);
 		delete[] lns;
 	}
 };
@@ -451,40 +455,21 @@ class Demo : public Engine {
 			//line to all asteroids
 			rst.setChar('.');
 			rst.setColor(Raster::RED);
-			for (Asteroid& a:asteroids) {
-				V2D u=a.pos;
-				V2D v=ship.pos;
-				rst.drawLine(u.x, u.y, v.x, v.y);
-			}
+			for (Asteroid& a:asteroids) rst.drawLine(a.pos, ship.pos);
 
 			//line to all bullets
 			rst.setColor(Raster::GREEN);
-			for (Bullet& b:bullets) {
-				V2D u=b.pos;
-				V2D v=ship.pos;
-				rst.drawLine(u.x, u.y, v.x, v.y);
-			}
+			for (Bullet& b:bullets) rst.drawLine(b.pos, ship.pos);
 
 			//show asteroids vel
 			rst.setColor(Raster::BLUE);
-			for (Asteroid& a:asteroids) {
-				V2D u=a.pos;
-				V2D v=a.pos+a.vel;
-				rst.drawLine(u.x, u.y, v.x, v.y);
-			}
+			for (Asteroid& a:asteroids) rst.drawLine(a.pos, a.pos+a.vel);
 
 			//show bullets vel
-			for (Bullet& b:bullets) {
-				V2D u=b.pos;
-				V2D v=b.pos+b.vel;
-				rst.drawLine(u.x, u.y, v.x, v.y);
-			}
+			for (Bullet& b:bullets) rst.drawLine(b.pos, b.pos+b.vel);
 
-			{//show ship vel
-				V2D u=ship.pos;
-				V2D v=ship.pos+ship.vel;
-				rst.drawLine(u.x, u.y, v.x, v.y);
-			}
+			//show ship vel
+			rst.drawLine(ship.pos, ship.pos+ship.vel);
 
 			//show asteroid bounds
 			rst.setColor(Raster::GREY);
@@ -496,26 +481,22 @@ class Demo : public Engine {
 
 		//show particles
 		rst.setColor(Raster::WHITE);
-		for (Particle& p:particles) {
-			p.show(rst);
-		}
+		for (Particle& p:particles) p.render(rst);
 
 		//show all bullets
 		rst.setChar('L');
 		for (Bullet& b:bullets) {
-			rst.fillRect(b.pos.x-1, b.pos.y-1, 3, 3);
+			b.render(rst);
 		}
 
 		//show asteroids
 		rst.setChar('a');
-		for (Asteroid& a:asteroids) {
-			a.show(rst);
-		}
+		for (Asteroid& a:asteroids) a.render(rst);
 
 		if (!lost) {
 			//show ship
 			rst.setChar('S');
-			ship.show(rst);
+			ship.render(rst);
 		}
 
 		//show warning sign

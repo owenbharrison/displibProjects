@@ -177,8 +177,6 @@ class Demo : public Engine {
 	}
 
 	void draw(Raster& rst) override {
-		//0x2588 is a [FULL_CHAR_BLOCK] which is nice for this
-
 		//clear screen
 		rst.setChar(' ');
 		rst.fillRect(0, 0, width, height);

@@ -10,17 +10,17 @@ struct Barrier {
 	V2D a, b;
 	float rad;
 
-	void show(Raster& rst) {
-		rst.drawCircle(a.x, a.y, rad);
-		rst.drawCircle(b.x, b.y, rad);
+	void render(Raster& rst) {
+		rst.drawCircle(a, rad);
+		rst.drawCircle(b, rad);
 		V2D tang=V2D::normal(b-a);
 		V2D norm(-tang.y, tang.x);
 		V2D ap=a+norm*rad;
 		V2D an=a-norm*rad;
-		V2D bp=b+norm*rad;
 		V2D bn=b-norm*rad;
-		rst.drawLine(ap.x, ap.y, bp.x, bp.y);
-		rst.drawLine(an.x, an.y, bn.x, bn.y);
+		V2D bp=b+norm*rad;
+		rst.drawLine(ap, bp);
+		rst.drawLine(an, bn);
 	}
 };
 
@@ -167,14 +167,12 @@ class Demo : public Engine {
 		else {
 			rst.setChar('p');
 			for (Particle& p:particles) {
-				rst.drawCircle(p.pos.x, p.pos.y, p.rad);
+				rst.drawCircle(p.pos, p.rad);
 			}
 		}
 
 		rst.setChar('b');
-		for (Barrier& b:barriers) {
-			b.show(rst);
-		}
+		for (Barrier& b:barriers) b.render(rst);
 
 		//show fps
 		rst.setColor(Raster::WHITE);

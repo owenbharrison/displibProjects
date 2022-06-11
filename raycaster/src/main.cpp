@@ -20,6 +20,10 @@ struct Line {
 		delete[] tu;
 		return t;
 	}
+
+	void render(Raster& rst) {
+		rst.drawLine(a, b);
+	}
 };
 
 class Demo : public Engine {
@@ -99,7 +103,7 @@ class Demo : public Engine {
 				dist=record;
 			}
 			V2D endPt=ray.origin+ray.dir*dist;
-			rst.drawLine(ray.origin.x, ray.origin.y, endPt.x, endPt.y);
+			rst.drawLine(ray.origin, endPt);
 		}
 
 		//draw "player" pos
@@ -111,7 +115,7 @@ class Demo : public Engine {
 		rst.setChar('#');
 		for (Line& l:lines) {
 			rst.setColor(l.col);
-			rst.drawLine(l.a.x, l.a.y, l.b.x, l.b.y);
+			l.render(rst);
 		}
 
 		//show fps

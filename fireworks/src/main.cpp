@@ -34,12 +34,12 @@ struct Particle {
 		return age>lifeSpan;
 	}
 
-	void show(Raster& rst) {
+	void render(Raster& rst) {
 		//ramp to show how "young" or "vibrant"
 		float pct=Maths::map(age, 0, lifeSpan, 1, 0);
 		int asi=Maths::clamp(pct*8, 0, 7);
 		rst.setChar(" .,~=#&@"[asi]);
-		rst.putPixel(pos.x, pos.y);
+		rst.putPixel(pos);
 	}
 };
 
@@ -115,16 +115,14 @@ struct Firework {
 		}
 	}
 
-	void show(Raster& rst) {
+	void render(Raster& rst) {
 		//only show if we havent blown up
 		if (!blown) {
-			rst.putPixel(pos.x, pos.y); rst.setColor(col);
+			rst.putPixel(pos); rst.setColor(col);
 		}
 
 		//but always show all particles
-		for (Particle& p:particles) {
-			p.show(rst);
-		}
+		for (Particle& p:particles) p.render(rst);
 	}
 };
 
@@ -190,7 +188,7 @@ class Demo : public Engine {
 		for (Firework& f:fireworks) {
 			rst.setChar('#');
 			rst.setColor(f.col);
-			f.show(rst);
+			f.render(rst);
 			total+=f.particles.size();
 		}
 

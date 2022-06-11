@@ -23,6 +23,10 @@ struct Mirror : LineSegment {
 		V2D tang=V2D::normal(a-b);
 		return V2D(-tang.y, tang.x);
 	}
+
+	void render(Raster& rst) {
+		rst.drawLine(a, b);
+	}
 };
 
 //https://math.stackexchange.com/a/13263
@@ -80,9 +84,7 @@ class Demo : public Engine {
 		//draw all "mirrors"
 		rst.setChar('m');
 		rst.setColor(Raster::RED);
-		for (Mirror& m:mirrors) {
-			rst.drawLine(m.a.x, m.a.y, m.b.x, m.b.y);
-		}
+		for (Mirror& m:mirrors) m.render(rst);
 
 		//start by making a ray from the mouse pos in a desired direction
 		V2D rayStart(mouseX, mouseY);
@@ -124,7 +126,7 @@ class Demo : public Engine {
 				float fIndex=Maths::map(numBounces, 0, maxBounces-1, asciiLen-1, 0);
 				int nIndex=Maths::clamp(fIndex, 0, asciiLen-1);
 				rst.setChar(asciiArr[nIndex]);
-				rst.drawLine(ray.origin.x, ray.origin.y, ixPt.x, ixPt.y);
+				rst.drawLine(ray.origin, ixPt);
 				//set "next" ray
 				ray={ixPt, reflectVec(ray.dir, mirrorToUse.getNorm())};
 				//save this used mirror so we dont self intersect
@@ -135,7 +137,7 @@ class Demo : public Engine {
 		}
 		if (numBounces<maxBounces) {
 			V2D endPt=ray.origin+ray.dir*maxLength;
-			rst.drawLine(ray.origin.x, ray.origin.y, endPt.x, endPt.y);
+			rst.drawLine(ray.origin, endPt);
 		}
 	}
 };

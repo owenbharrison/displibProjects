@@ -1,4 +1,5 @@
 #include "AABB2D.h"
+
 namespace displib {
 	AABB2D::AABB2D() {
 		this->min=V2D();

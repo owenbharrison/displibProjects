@@ -37,10 +37,10 @@ struct tri {
 struct mesh {
 	std::vector<tri> tris;
 
-	//load onj file
+	//load obj file
 	bool loadFromFile(std::string filename) {
 		std::ifstream file(filename);
-		std::regex triRegex("f ([0-9]+)[/0-9]* ([0-9]+)[/0-9]* ([0-9]+)[/0-9]*$");
+		std::regex indexRegex("([0-9]+)[/0-9]*");
 		if (!file.is_open()) return false;
 
 		std::vector<V3D> vtxs;
@@ -49,6 +49,7 @@ struct mesh {
 		//get extreme points
 		float nx=INFINITY, ny=INFINITY, nz=INFINITY;
 		float mx=-INFINITY, my=-INFINITY, mz=-INFINITY;
+		//go through each line of the file
 		while (!file.eof()) {
 			std::string line;
 			getline(file, line);
@@ -56,7 +57,7 @@ struct mesh {
 			stream<<line;
 			char junk;
 
-			//find vtxs
+			//if the line is in vertex format
 			if (line.find("v ")!=std::string::npos) {
 				float x, y, z;
 				stream>>junk>>x>>y>>z;
@@ -65,15 +66,19 @@ struct mesh {
 				vtxs.push_back(V3D(x, y, z));
 			}
 
-			//find tris
-			std::smatch triMatches;
-			if (std::regex_match(line, triMatches, triRegex)) {
-				int a, b, c;
-				a=stoi(triMatches[1].str());
-				b=stoi(triMatches[2].str());
-				c=stoi(triMatches[3].str());
-				//obj stores first index as 1, so -1
-				tIxs.push_back({a-1, b-1, c-1});
+			//if the line is in face format
+			if (line.find("f ")!=std::string::npos) {
+				//find all indexes
+				std::vector<int> indexes;
+				for (std::sregex_iterator iter=std::sregex_iterator(line.begin(), line.end(), indexRegex); iter!=std::sregex_iterator(); iter++) {
+					std::smatch match;
+					match=*iter;
+					indexes.push_back(stoi(match.str(1))-1);
+				}
+				//simple triangulation of face
+				for (int i=1; i<indexes.size()-1; i++) {
+					tIxs.push_back({indexes[0], indexes[i], indexes[i+1]});
+				}
 			}
 		}
 
@@ -102,7 +107,7 @@ class Demo : public Engine {
 	bool oDown=false, nDown=false;
 
 	float camYaw=-0.983478f, camPitch=-1.922638f;
-	float camZoom=80;
+	float camZoom;
 
 	const char* asciiArr=" .,~=#&@";
 
@@ -111,7 +116,9 @@ class Demo : public Engine {
 
 		ctr=V2D(width/2, height/2);
 
-		lightPos=V3D(1, 1, 1);
+		lightPos=V3D(60, 40, 90);
+
+		camZoom=height/2.8f;
 	}
 
 	void update(float dt) override {
@@ -120,7 +127,7 @@ class Demo : public Engine {
 			cosf(camYaw)*sinf(camPitch),
 			-cosf(camPitch),
 			sinf(camYaw)*sinf(camPitch)
-		)*5;
+		)*120;
 
 		//for switching outline "mode"
 		bool oKey=getKey('O');
@@ -158,7 +165,7 @@ class Demo : public Engine {
 		//update title
 		std::string triCt=std::to_string(mainMesh.tris.size())+"tris";
 		std::string fpsStr=std::to_string((int)framesPerSecond)+"fps";
-		setTitle("3D Testing ["+FILENAME+"] with "+triCt+" @ "+fpsStr);
+		setTitle("3D Testing ["+FILENAME+"] with "+triCt+" @ "+fpsStr+" "+lightPos.toStr());
 	}
 
 	void draw(Raster& rst) override {
@@ -196,19 +203,19 @@ class Demo : public Engine {
 			V2D a=projV3D(t.a, camYaw, camPitch, camZoom)+ctr;
 			V2D b=projV3D(t.b, camYaw, camPitch, camZoom)+ctr;
 			V2D c=projV3D(t.c, camYaw, camPitch, camZoom)+ctr;
-			rst.fillTriangle(a.x, a.y, b.x, b.y, c.x, c.y);
+			rst.fillTriangle(a, b, c);
 
 			//show wireframe
 			rst.setChar(0x2588);
 			if (showOutline) {
-				rst.drawTriangle(a.x, a.y, b.x, b.y, c.x, c.y);
+				rst.drawTriangle(a, b, c);
 			}
 
 			//show tri normals
 			if (showNorm) {
 				V2D mid=projV3D(tPos, camYaw, camPitch, camZoom)+ctr;
 				V2D midEx=projV3D(tPos+tNorm/25, camYaw, camPitch, camZoom)+ctr;
-				rst.drawLine(mid.x, mid.y, midEx.x, midEx.y);
+				rst.drawLine(mid, midEx);
 			}
 		}
 
@@ -222,7 +229,7 @@ class Demo : public Engine {
 int main() {
 	Demo d=Demo();
 
-	//init ofn
+	//init file chooser
 	OPENFILENAME ofn;
 	char szFile[1024];
 	ZeroMemory(&ofn, sizeof(ofn));

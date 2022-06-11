@@ -28,6 +28,7 @@ namespace displib {
 			}
 		}
 	}
+	void Raster::putPixel(V2D v) { this->putPixel(v.x, v.y); }
 
 	void Raster::drawLine(int x1, int y1, int x2, int y2) {
 		int x, y, dx, dy, dx1, dy1, px, py, xe, ye, i;
@@ -81,12 +82,14 @@ namespace displib {
 			}
 		}
 	}
+	void Raster::drawLine(V2D v1, V2D v2) { this->drawLine(v1.x, v1.y, v2.x, v2.y); }
 
 	void Raster::drawTriangle(int x1, int y1, int x2, int y2, int x3, int y3) {
 		this->drawLine(x1, y1, x2, y2);
 		this->drawLine(x2, y2, x3, y3);
 		this->drawLine(x3, y3, x1, y1);
 	}
+	void Raster::drawTriangle(V2D v1, V2D v2, V2D v3) { this->drawTriangle(v1.x, v1.y, v2.x, v2.y, v3.x, v3.y); }
 
 	void Raster::fillTriangle(int x1, int y1, int x2, int y2, int x3, int y3) {
 		auto drawline=[&](int sx, int ex, int ny) { for (int i=sx; i<=ex; i++) this->putPixel(i, ny); };
@@ -212,6 +215,7 @@ namespace displib {
 			if (y>y3) return;
 		}
 	}
+	void Raster::fillTriangle(V2D v1, V2D v2, V2D v3) { this->fillTriangle(v1.x, v1.y, v2.x, v2.y, v3.x, v3.y); }
 
 	void Raster::drawCircle(int xc, int yc, int r) {
 		//wikipedia
@@ -233,6 +237,7 @@ namespace displib {
 			else p+=4*(x++-y--)+10;
 		}
 	}
+	void Raster::drawCircle(V2D v, int r) { this->drawCircle(v.x, v.y, r); }
 
 	void Raster::fillCircle(int xc, int yc, int r) {
 		//wikipedia
@@ -252,6 +257,7 @@ namespace displib {
 			else p+=4*(x++-y--)+10;
 		}
 	};
+	void Raster::fillCircle(V2D v, int r) { this->fillCircle(v.x, v.y, r); }
 
 	void Raster::drawRect(int x, int y, int wid, int hei) {
 		for (int i=1; i<wid; i++) this->putPixel(x+i, y);
@@ -278,6 +284,7 @@ namespace displib {
 		}
 		this->setChar(cCh);
 	}
+	void Raster::drawString(V2D v, std::string str) { this->drawString(v.x, v.y, str); }
 
 	CHAR_INFO* Raster::getBuffer() {
 		return this->charBuffer;

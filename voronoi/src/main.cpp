@@ -16,22 +16,10 @@ struct voronoiPt {
 
 	void checkAABB(AABB2D a) {
 		//bounds detection and bounce
-		if (x<a.min.x) {
-			x=a.min.x;
-			vx*=-1.0f;
-		}
-		if (y<a.min.y) {
-			y=a.min.y;
-			vy*=-1.0f;
-		}
-		if (x>a.max.x) {
-			x=a.max.x;
-			vx*=-1.0f;
-		}
-		if (y>a.max.y) {
-			y=a.max.y;
-			vy*=-1.0f;
-		}
+		if (x<a.min.x) { x=a.min.x; vx*=-1; }
+		if (y<a.min.y) { y=a.min.y; vy*=-1; }
+		if (x>a.max.x) { x=a.max.x; vx*=-1; }
+		if (y>a.max.y) { y=a.max.y; vy*=-1; }
 	}
 };
 

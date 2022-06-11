@@ -13,7 +13,7 @@ namespace displib {
 	
 	//returns value t "percent(0-1)" between a and b.
 	float Maths::lerp(float t, float a, float b) {
-		return t*(b-a)+a;
+		return a+(b-a)*t;
 	}
 
 	//maps one range to another, linearly.

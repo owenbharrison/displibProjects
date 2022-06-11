@@ -16,21 +16,25 @@ struct circle {
 	}
 
 	bool overlapCircle(circle other) {
-		if (this->getAABB().overlapAABB(other.getAABB())) {//broad phase opt
-			V2D sub=this->pos-other.pos;
+		if (getAABB().overlapAABB(other.getAABB())) {//broad phase opt
+			V2D sub=pos-other.pos;
 			float mag=sub.mag();
-			if (mag<this->rad+other.rad) return true;
+			if (mag<rad+other.rad) return true;
 		}
 		return false;
 	}
 
 	bool containsPt(V2D pt) {
-		if (this->getAABB().containsPt(pt)) {
-			V2D sub=this->pos-pt;
+		if (getAABB().containsPt(pt)) {
+			V2D sub=pos-pt;
 			float mag=sub.mag();
-			if (mag<this->rad) return true;
+			if (mag<rad) return true;
 		}
 		return false;
+	}
+
+	void render(Raster& rst) {
+		rst.drawCircle(pos, rad);
 	}
 };
 
@@ -104,7 +108,7 @@ class Demo : public Engine {
 		for (auto& c:circles) {
 			//color green if growing, red else
 			rst.setColor(c.growing?Raster::GREEN:Raster::RED);
-			rst.drawCircle(c.pos.x, c.pos.y, c.rad);
+			c.render(rst);
 		}
 
 		//show fps
