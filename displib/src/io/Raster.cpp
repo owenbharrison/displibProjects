@@ -17,30 +17,36 @@ namespace displib {
 		this->setColor(WHITE);
 	}
 
+	//to set which symbol and color to draw the next "instruction" in
 	void Raster::setChar(short c) { this->currChar.Char.UnicodeChar=c; }
 
 	void Raster::setColor(short c) { this->currChar.Attributes=c; }
 
-	void Raster::putPixel(int x, int y) {
+	//this nonsense below is for float conversion, (so it rounds, instead of lopping off the decimals)
+
+	//renders the specified point with the current char & col
+	void Raster::_putPixel(int x, int y) {
 		if (x>=0&&x<this->width) {//in range of x
 			if (y>=0&&y<this->height) {//in range of y
 				this->charBuffer[x+y*this->width]=this->currChar;
 			}
 		}
 	}
+	void Raster::putPixel(float x, float y) { this->_putPixel(round(x), round(y)); }
 	void Raster::putPixel(V2D v) { this->putPixel(v.x, v.y); }
 
-	void Raster::drawLine(int x1, int y1, int x2, int y2) {
+	//renders a line specified between the 2 points with the current char & col
+	void Raster::_drawLine(int x1, int y1, int x2, int y2) {
 		int x, y, dx, dy, dx1, dy1, px, py, xe, ye, i;
 		dx=x2-x1; dy=y2-y1;
 		if (dx==0) {
 			if (y2<y1) std::swap(y1, y2);
-			for (y=y1; y<=y2; y++) this->putPixel(x1, y);
+			for (y=y1; y<=y2; y++) this->_putPixel(x1, y);
 			return;
 		}
 		if (dy==0) {
 			if (x2<x1) std::swap(x1, x2);
-			for (x=x1; x<=x2; x++) this->putPixel(x, y1);
+			for (x=x1; x<=x2; x++) this->_putPixel(x, y1);
 			return;
 		}
 		dx1=abs(dx); dy1=abs(dy);
@@ -52,7 +58,7 @@ namespace displib {
 			else {
 				x=x2; y=y2; xe=x1;
 			}
-			this->putPixel(x, y);
+			this->_putPixel(x, y);
 			for (i=0; x<xe; i++) {
 				x++;
 				if (px<0) px+=2*dy1;
@@ -60,7 +66,7 @@ namespace displib {
 					y+=((dx<0&&dy<0)||(dx>0&&dy>0))?1:-1;
 					px+=2*(dy1-dx1);
 				}
-				this->putPixel(x, y);
+				this->_putPixel(x, y);
 			}
 		}
 		else {
@@ -70,7 +76,7 @@ namespace displib {
 			else {
 				x=x2; y=y2; ye=y1;
 			}
-			this->putPixel(x, y);
+			this->_putPixel(x, y);
 			for (i=0; y<ye; i++) {
 				y++;
 				if (py<=0) py+=2*dx1;
@@ -78,21 +84,25 @@ namespace displib {
 					x+=((dx<0&&dy<0)||(dx>0&&dy>0))?1:-1;
 					py+=2*(dx1-dy1);
 				}
-				this->putPixel(x, y);
+				this->_putPixel(x, y);
 			}
 		}
 	}
+	void Raster::drawLine(float x1, float y1, float x2, float y2) { this->_drawLine(round(x1), round(y1), round(x2), round(y2)); }
 	void Raster::drawLine(V2D v1, V2D v2) { this->drawLine(v1.x, v1.y, v2.x, v2.y); }
 
-	void Raster::drawTriangle(int x1, int y1, int x2, int y2, int x3, int y3) {
+	//renders a triangle specified between the 3 points with the current char & col
+	void Raster::_drawTriangle(int x1, int y1, int x2, int y2, int x3, int y3) {
 		this->drawLine(x1, y1, x2, y2);
 		this->drawLine(x2, y2, x3, y3);
 		this->drawLine(x3, y3, x1, y1);
 	}
+	void Raster::drawTriangle(float x1, float y1, float x2, float y2, float x3, float y3) { this->_drawTriangle(round(x1), round(y1), round(x2), round(y2), round(x3), round(y3)); }
 	void Raster::drawTriangle(V2D v1, V2D v2, V2D v3) { this->drawTriangle(v1.x, v1.y, v2.x, v2.y, v3.x, v3.y); }
 
-	void Raster::fillTriangle(int x1, int y1, int x2, int y2, int x3, int y3) {
-		auto drawline=[&](int sx, int ex, int ny) { for (int i=sx; i<=ex; i++) this->putPixel(i, ny); };
+	//fills in a triangle specified between the 3 points with the current char & col
+	void Raster::_fillTriangle(int x1, int y1, int x2, int y2, int x3, int y3) {
+		auto drawline=[&](int sx, int ex, int ny) { for (int i=sx; i<=ex; i++) this->_putPixel(i, ny); };
 
 		int t1x, t2x, y, minx, maxx, t1xp, t2xp;
 		bool changed1=false;
@@ -215,9 +225,11 @@ namespace displib {
 			if (y>y3) return;
 		}
 	}
+	void Raster::fillTriangle(float x1, float y1, float x2, float y2, float x3, float y3) { this->_fillTriangle(round(x1), round(y1), round(x2), round(y2), round(x3), round(y3)); }
 	void Raster::fillTriangle(V2D v1, V2D v2, V2D v3) { this->fillTriangle(v1.x, v1.y, v2.x, v2.y, v3.x, v3.y); }
 
-	void Raster::drawCircle(int xc, int yc, int r) {
+	//renders a circle specified at the point and radius with the current char & col
+	void Raster::_drawCircle(int xc, int yc, int r) {
 		//wikipedia
 		int x=0;
 		int y=r;
@@ -225,28 +237,30 @@ namespace displib {
 		if (!r) return;
 
 		while (y>=x) {
-			this->putPixel(xc-x, yc-y);
-			this->putPixel(xc-y, yc-x);
-			this->putPixel(xc+y, yc-x);
-			this->putPixel(xc+x, yc-y);
-			this->putPixel(xc-x, yc+y);
-			this->putPixel(xc-y, yc+x);
-			this->putPixel(xc+y, yc+x);
-			this->putPixel(xc+x, yc+y);
+			this->_putPixel(xc-x, yc-y);
+			this->_putPixel(xc-y, yc-x);
+			this->_putPixel(xc+y, yc-x);
+			this->_putPixel(xc+x, yc-y);
+			this->_putPixel(xc-x, yc+y);
+			this->_putPixel(xc-y, yc+x);
+			this->_putPixel(xc+y, yc+x);
+			this->_putPixel(xc+x, yc+y);
 			if (p<0) p+=4*(x++)+6;
 			else p+=4*(x++-y--)+10;
 		}
 	}
-	void Raster::drawCircle(V2D v, int r) { this->drawCircle(v.x, v.y, r); }
+	void Raster::drawCircle(float x, float y, float r) { this->_drawCircle(round(x), round(y), round(r)); }
+	void Raster::drawCircle(V2D v, float r) { this->drawCircle(v.x, v.y, r); }
 
-	void Raster::fillCircle(int xc, int yc, int r) {
+	//fills in a circle specified at the point and radius with the current char & col
+	void Raster::_fillCircle(int xc, int yc, int r) {
 		//wikipedia
 		int x=0;
 		int y=r;
 		int p=3-2*r;
 		if (!r) return;
 
-		auto drawline=[&](int sx, int ex, int ny) {for (int i=sx; i<=ex; i++)this->putPixel(i, ny); };
+		auto drawline=[&](int sx, int ex, int ny) {for (int i=sx; i<=ex; i++)this->_putPixel(i, ny); };
 
 		while (y>=x) {
 			drawline(xc-x, xc+x, yc-y);
@@ -257,35 +271,45 @@ namespace displib {
 			else p+=4*(x++-y--)+10;
 		}
 	};
-	void Raster::fillCircle(V2D v, int r) { this->fillCircle(v.x, v.y, r); }
+	void Raster::fillCircle(float x, float y, float r) { this->_fillCircle(round(x), round(y), round(r)); }
+	void Raster::fillCircle(V2D v, float r) { this->fillCircle(v.x, v.y, r); }
 
-	void Raster::drawRect(int x, int y, int wid, int hei) {
-		for (int i=1; i<wid; i++) this->putPixel(x+i, y);
-		for (int i=1; i<hei; i++) this->putPixel(x+wid-1, y+i);
-		for (int i=wid-1; i>=0; i--) this->putPixel(x+i, y+hei-1);
-		for (int i=hei-1; i>=0; i--) this->putPixel(x, y+i);
+	//renders a rectangle at the specified point with the width & height & char & col
+	void Raster::_drawRect(int x, int y, int w, int h) {
+		for (int i=1; i<w; i++) this->_putPixel(x+i, y);
+		for (int i=1; i<h; i++) this->_putPixel(x+w-1, y+i);
+		for (int i=w-1; i>=0; i--) this->_putPixel(x+i, y+h-1);
+		for (int i=h-1; i>=0; i--) this->_putPixel(x, y+i);
 	}
+	void Raster::drawRect(float x, float y, float w, float h) { this->_drawRect(round(x), round(y), round(w), round(h)); }
+	void Raster::drawRect(V2D v, float w, float h) { this->drawRect(v.x, v.y, w, h); }
 
-	void Raster::fillRect(int x, int y, int wid, int hei) {
-		for (int i=0; i<wid; i++) {
-			for (int j=0; j<hei; j++) {
-				this->putPixel(x+i, y+j);
+	//fills in a rectangle at the specified point with the width & height & char & col
+	void Raster::_fillRect(int x, int y, int w, int h) {
+		for (int i=0; i<w; i++) {
+			for (int j=0; j<h; j++) {
+				this->_putPixel(x+i, y+j);
 			}
 		}
 	}
+	void Raster::fillRect(float x, float y, float w, float h) { this->_fillRect(round(x), round(y), round(w), round(h)); }
+	void Raster::fillRect(V2D v, float w, float h) { this->fillRect(v.x, v.y, w, h); }
 
-	void Raster::drawString(int x_, int y, std::string str) {
+	//draws a string starting from the left at the specified point, with the col, @ the char size
+	void Raster::_drawString(int x_, int y, std::string str) {
 		int x=x_;
 		wchar_t cCh=this->currChar.Char.UnicodeChar;
 		for (auto ch:str) {
 			this->setChar(ch);
-			this->putPixel(x, y);
+			this->_putPixel(x, y);
 			x++;
 		}
 		this->setChar(cCh);
 	}
+	void Raster::drawString(float x, float y, std::string str) { this->_drawString(round(x), round(y), str); }
 	void Raster::drawString(V2D v, std::string str) { this->drawString(v.x, v.y, str); }
 
+	//returns the 2d raster buffer
 	CHAR_INFO* Raster::getBuffer() {
 		return this->charBuffer;
 	}

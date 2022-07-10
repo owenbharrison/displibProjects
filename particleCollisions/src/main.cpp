@@ -2,11 +2,96 @@
 #include <time.h>
 
 #include "Engine.h"
-#include "physics/Spring.h"
+#include <geom/AABB2D.h>
 #include "maths/Maths.h"
 using namespace displib;
 
-struct Barrier {
+struct ptc {
+	V2D pos, oldpos, vel, acc;
+	float rad;
+
+	ptc(V2D pos_, float rad_) {
+		pos=pos_;
+		rad=rad_;
+	}
+
+	void update(float dt) {
+		oldpos=pos;
+		vel+=acc*dt;
+		pos+=vel*dt;
+		acc*=0;
+	}
+
+	void applyForce(V2D f) {
+		acc+=f;
+	}
+
+	AABB2D getAABB() {
+		return AABB2D(
+			V2D(pos.x-rad, pos.y-rad),
+			V2D(pos.x+rad, pos.y+rad)
+		);
+	}
+
+	void checkAABB(AABB2D a) {
+		//bounds detection and bounce
+		if (pos.x<a.min.x+rad) {
+			pos.x=a.min.x+rad;
+			vel.x*=-1;
+		}
+		if (pos.y<a.min.y+rad) {
+			pos.y=a.min.y+rad;
+			vel.y*=-1;
+		}
+		if (pos.x>a.max.x-rad) {
+			pos.x=a.max.x-rad;
+			vel.x*=-1;
+		}
+		if (pos.y>a.max.y-rad) {
+			pos.y=a.max.y-rad;
+			vel.y*=-1;
+		}
+	}
+
+	void render(Raster& rst) { rst.putPixel(pos.x, pos.y); }
+};
+
+struct spr {
+	ptc* a=nullptr, * b=nullptr;
+	float restLen=0, stiff=0, damp=0;
+
+	spr() {}
+
+	spr(ptc& a_, ptc& b_, float stiff_, float damp_) {
+		a=&a_;
+		b=&b_;
+		restLen=(getA().pos-getB().pos).mag();
+		stiff=stiff_;
+		damp=damp_;
+	}
+
+	ptc& getA() { return *a; }
+	ptc& getB() { return *b; }
+
+	void update() {
+		V2D sub=getB().pos-getA().pos;
+		V2D dir=V2D::normal(sub);
+		float fs=stiff*(sub.mag()-restLen);
+		float fd=dir.dot(getB().vel-getA().vel)*damp;
+		V2D f=dir*(fs+fd);
+
+		getA().applyForce(f);
+		getB().applyForce(f*-1);
+	}
+
+	void show(Raster& rst) {
+		V2D a=getA().pos;
+		V2D b=getB().pos;
+		rst.drawLine(a, b);
+	}
+};
+
+struct barrier {
 	V2D a, b;
 	float rad;
 
@@ -27,8 +112,8 @@ struct Barrier {
 class Demo : public Engine {
 	public:
 	V2D grav;
-	std::vector<Particle> particles;
-	std::vector<Barrier> barriers;
+	std::vector<ptc> ptcs;
+	std::vector<barrier> barriers;
 	float timer=0;
 	float stiff, damp;
 	const char* asciiArr=" .,~=#&@";
@@ -64,18 +149,18 @@ class Demo : public Engine {
 		//move barriers
 		V2D mp(mouseX, mouseY);
 		if (getKey(VK_SPACE)) {
-			for (Barrier& b:barriers) {
+			for (barrier& b:barriers) {
 				if ((b.a-mp).mag()<b.rad) b.a=mp;
 				if ((b.b-mp).mag()<b.rad) b.b=mp;
 			}
 		}
 
 		//for each particle
-		for (int i=0; i<particles.size(); i++) {
-			Particle& a=particles.at(i);
+		for (int i=0; i<ptcs.size(); i++) {
+			ptc& a=ptcs.at(i);
 			//check all of the particles AFTER it
-			for (int j=i+1; j<particles.size(); j++) {
-				Particle& b=particles.at(j);
+			for (int j=i+1; j<ptcs.size(); j++) {
+				ptc& b=ptcs.at(j);
 				//if touching optimization [aabb overlap]
 				if (a.getAABB().overlapAABB(b.getAABB())) {
 					float totalRad=a.rad+b.rad;
@@ -83,7 +168,7 @@ class Demo : public Engine {
 					//if particles touch [circle overlap]
 					if (dist<totalRad) {
 						//make new temp spring
-						Spring s(a, b, stiff, damp);
+						spr s(a, b, stiff, damp);
 						s.restLen=a.rad+b.rad;
 						s.update();
 					}
@@ -91,15 +176,15 @@ class Demo : public Engine {
 			}
 
 			//check all barriers
-			for (Barrier& b:barriers) {
+			for (barrier& b:barriers) {
 				V2D pa=a.pos-b.a, ba=b.b-b.a;
 				float t=Maths::clamp(pa.dot(ba)/ba.dot(ba), 0, 1);
 				V2D bPt=b.a+ba*t;
 				if ((bPt-a.pos).mag()<b.rad+a.rad) {//"inside" barrier
 					//make temp particle
-					Particle p(bPt, b.rad);
+					ptc p(bPt, b.rad);
 					//make temp spring
-					Spring s(a, p, stiff, damp);
+					spr s(a, p, stiff, damp);
 					s.restLen=a.rad+b.rad;
 					//update spring like a particle collision
 					s.update();
@@ -108,7 +193,7 @@ class Demo : public Engine {
 		}
 
 		//update all particles
-		for (Particle& p:particles) {
+		for (ptc& p:ptcs) {
 			p.applyForce(grav);
 
 			//drag depends on vel [dv/dt=-cv]
@@ -121,9 +206,9 @@ class Demo : public Engine {
 
 		if (timer>0.03) {
 			timer=0;
-			if (particles.size()<330) {
+			if (ptcs.size()<330) {
 				float x=Maths::random(width/5, width*4/5);
-				particles.push_back(Particle(V2D(x, height/4), Maths::random(2, 3)));
+				ptcs.push_back(ptc(V2D(x, height/4), Maths::random(2, 3)));
 			}
 		}
 		timer+=dt;
@@ -151,7 +236,7 @@ class Demo : public Engine {
 				for (int y=0; y<height; y++) {
 					//sum all "radius strengths"
 					float sum=0;
-					for (Particle& p:particles) {
+					for (ptc& p:ptcs) {
 						V2D sb=V2D(x, y)-p.pos;
 						float r=p.rad*1.5f;
 						sum+=r*r/sb.dot(sb);
@@ -166,18 +251,16 @@ class Demo : public Engine {
 		}
 		else {
 			rst.setChar('p');
-			for (Particle& p:particles) {
-				rst.drawCircle(p.pos, p.rad);
-			}
+			for (ptc& p:ptcs) rst.drawCircle(p.pos, p.rad);
 		}
 
 		rst.setChar('b');
-		for (Barrier& b:barriers) b.render(rst);
+		for (barrier& b:barriers) b.render(rst);
 
 		//show fps
 		rst.setColor(Raster::WHITE);
 		rst.drawString(0, 0, "FPS: "+std::to_string((int)framesPerSecond));
-		rst.drawString(0, 1, "num: "+std::to_string(particles.size()));
+		rst.drawString(0, 1, "num: "+std::to_string(ptcs.size()));
 	}
 };
 

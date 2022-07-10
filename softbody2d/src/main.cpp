@@ -45,16 +45,13 @@ struct spr {
 	ptc& getA() { return *a; }
 	ptc& getB() { return *b; }
 
-	V2D calcForce() {
+	void update() {
 		V2D sub=getB().pos-getA().pos;
 		V2D dir=V2D::normal(sub);
-		float Fs=stiff*(sub.mag()-restLen);
-		float Fd=dir.dot(getB().vel-getA().vel)*damp;
-		return dir*(Fs+Fd);
-	}
+		float fs=stiff*(sub.mag()-restLen);
+		float fd=dir.dot(getB().vel-getA().vel)*damp;
+		V2D f=dir*(fs+fd);
 
-	void update() {
-		V2D f=calcForce();
 		getA().applyForce(f);
 		getB().applyForce(f*-1);
 	}

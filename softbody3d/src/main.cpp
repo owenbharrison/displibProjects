@@ -64,16 +64,13 @@ struct spr {
 	ptc& getA() { return *a; }
 	ptc& getB() { return *b; }
 
-	V3D calcForce() {
+	void update() {
 		V3D sub=getB().pos-getA().pos;
 		V3D dir=V3D::normal(sub);
-		float Fs=stiff*(sub.mag()-restLen);
-		float Fd=dir.dot(getB().vel-getA().vel)*damp;
-		return dir*(Fs+Fd);
-	}
+		float fs=stiff*(sub.mag()-restLen);
+		float fd=dir.dot(getB().vel-getA().vel)*damp;
+		V3D f=dir*(fs+fd);
 
-	void update() {
-		V3D f=calcForce();
 		getA().applyForce(f);
 		getB().applyForce(f*-1);
 	}

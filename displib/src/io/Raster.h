@@ -12,6 +12,24 @@ namespace displib {
 		CHAR_INFO* charBuffer;
 		CHAR_INFO currChar;
 
+		void _putPixel(int x, int y);
+
+		void _drawLine(int x1, int y1, int x2, int y2);
+
+		void _drawTriangle(int x1, int y1, int x2, int y2, int x3, int y3);
+
+		void _fillTriangle(int x1, int y1, int x2, int y2, int x3, int y3);
+
+		void _drawCircle(int xc, int yc, int r);
+
+		void _fillCircle(int xc, int yc, int r);
+
+		void _drawRect(int x, int y, int w, int h);
+
+		void _fillRect(int x, int y, int w, int h);
+
+		void _drawString(int x_, int y, std::string str);
+
 		public:
 		enum COLORS {
 			BLACK=0x0000,
@@ -38,31 +56,28 @@ namespace displib {
 
 		Raster(int w, int h);
 
+
 		void setChar(short c);
 
 		void setColor(short c);
 
-		void putPixel(int x, int y);
-		void putPixel(V2D v);
+		void putPixel(float x, float y), putPixel(V2D v);
 
-		void drawLine(int x1, int y1, int x2, int y2);
-		void drawLine(V2D v1, V2D v2);
+		void drawLine(float x1, float y1, float x2, float y2), drawLine(V2D v1, V2D v2);
 
-		void drawTriangle(int x1, int y1, int x2, int y2, int x3, int y3);
-		void drawTriangle(V2D v1, V2D v2, V2D v3);
-		void fillTriangle(int x1, int y1, int x2, int y2, int x3, int y3);
-		void fillTriangle(V2D v1, V2D v2, V2D v3);
+		void drawTriangle(float x1, float y1, float x2, float y2, float x3, float y3), drawTriangle(V2D v1, V2D v2, V2D v3);
 
-		void drawCircle(int xc, int yc, int r);
-		void drawCircle(V2D v, int r);
-		void fillCircle(int xc, int yc, int r);
-		void fillCircle(V2D v, int r);
+		void fillTriangle(float x1, float y1, float x2, float y2, float x3, float y3), fillTriangle(V2D v1, V2D v2, V2D v3);
 
-		void drawRect(int x, int y, int w, int h);
-		void fillRect(int x, int y, int w, int h);
+		void drawCircle(float x, float y, float r), drawCircle(V2D v, float r);
 
-		void drawString(int x_, int y, std::string str);
-		void drawString(V2D v, std::string str);
+		void fillCircle(float x, float y, float r), fillCircle(V2D v, float r);
+
+		void drawRect(float x, float y, float w, float h), drawRect(V2D v, float w, float h);
+
+		void fillRect(float x, float y, float w, float h), fillRect(V2D v, float w, float h);
+
+		void drawString(float x, float y, std::string str), drawString(V2D v, std::string str);
 
 		CHAR_INFO* getBuffer();
 	};

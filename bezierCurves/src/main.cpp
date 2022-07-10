@@ -95,7 +95,7 @@ class Demo : public Engine {
 		rst.setColor(Raster::WHITE);
 		rst.putPixel(p0);
 		rst.putPixel(p1);
-		rst.putPixel(p2);
+		rst.putPixel(p2); 
 		rst.putPixel(p3);
 
 		//show fps

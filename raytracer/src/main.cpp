@@ -204,13 +204,14 @@ class Demo : public Engine {
 				V3D pij=p1m+qx*i+qy*j;
 				Ray ray=Ray(camPos, V3D::normal(pij));
 
-				//STARTCUT
+				//calculate color and symbol to use for this pixel
 				short charToUse;
 				short colorToUse;
 				hitGrid[x+y*width]=traceRay(ray, shapes, charToUse, colorToUse);
+				//set pixel
 				rst.setChar(charToUse);
 				rst.setColor(colorToUse);
-				//ENDCUT
+				//and draw it
 				rst.putPixel(x, y);
 			}
 		}

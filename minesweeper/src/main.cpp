@@ -5,6 +5,46 @@
 #include "maths/Maths.h"
 using namespace displib;
 
+struct ptc {
+	V2D pos, vel, acc;
+	float age=0, lifeSpan;
+
+	ptc(V2D pos_, V2D vel_, float lifeSpan_) {
+		pos=pos_;
+		vel=vel_;
+		lifeSpan=lifeSpan_;
+	}
+
+	static ptc random(float x, float y) {
+		float angle=Maths::random(-Maths::PI, Maths::PI);
+		float speed=Maths::random(3, 8);
+		return ptc(V2D(x, y), V2D::fromAngle(angle)*speed, Maths::random(1, 2));
+	}
+
+	void update(float dt) {
+		//euler explicit
+		vel+=acc*dt;
+		pos+=vel*dt;
+		acc*=0;
+
+		//age with change in time
+		age+=dt;
+	}
+
+	void applyForce(V2D f) { acc+=f; }
+
+	//too "old"
+	bool isDead() { return age>lifeSpan; }
+
+	void render(Raster& rst) {
+		//ramp to show how "young" or "vibrant"
+		float pct=Maths::map(age, 0, lifeSpan, 1, 0);
+		int asi=Maths::clamp(pct*7, 0, 6);
+		rst.setChar(".,~=#&@"[asi]);
+		rst.putPixel(pos);
+	}
+};
+
 struct Cell {
 	bool bomb=false;
 	bool revealed=false;
@@ -27,7 +67,6 @@ struct Cell {
 			exit(0);
 		}
 		else {
-			//else reveal
 			revealed=true;
 
 			//reveal all neighbors if this is 0
@@ -50,7 +89,7 @@ class Demo : public Engine {
 	int numTotalBombs=0;
 	bool flagKeyDown=false, revealKeyDown=false, started=false;
 	//"classic" number coloring in minesweeper
-	short coloring[8]={
+	short colors[8]={
 		Raster::DARK_CYAN,
 		Raster::GREEN,
 		Raster::RED,
@@ -200,7 +239,7 @@ class Demo : public Engine {
 						//show number
 						rst.setChar('0'+cell.numBombs);
 						//in the appropriate coloring
-						rst.setColor(coloring[cell.numBombs-1]);
+						rst.setColor(colors[cell.numBombs-1]);
 						//as char in center of cell
 						rst.putPixel(x+res/2, y+res/2);
 					}
