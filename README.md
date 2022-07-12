@@ -8,6 +8,7 @@ These projects incorporate some of my appreciation of Physics and Computer Scien
 
 ## Win32 Usage:
 Download as ZIP & extract.
+Using Microsoft Visual Studio with C++, 
 Open projects.sln.
 Set project Build Configuration to Release and Win32(x86).
 Set project startups to "Current Selection".
