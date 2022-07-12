@@ -56,7 +56,6 @@ namespace displib {
 
 		Raster(int w, int h);
 
-
 		void setChar(short c);
 
 		void setColor(short c);
