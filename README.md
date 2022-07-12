@@ -7,10 +7,10 @@ This repository has the code of the "simulations" that I have been working on, a
 These projects incorporate some of my appreciation of Physics and Computer Science.
 
 ## Win32 Usage:
-Download as ZIP & extract.
-Using Microsoft Visual Studio with C++, 
-Open projects.sln.
-Set project Build Configuration to Release and Win32(x86).
-Set project startups to "Current Selection".
-Set "displib" properties to export as Static Library(.lib), and all else to Windows Executable(.exe)
-Select a project and run it!
+1. Download as ZIP & extract.
+2. Using Microsoft Visual Studio with C++, 
+3. Open projects.sln.
+4. Set project Build Configuration to Release and Win32(x86).
+5. Set project startups to "Current Selection".
+6. Set "displib" properties to export as Static Library(.lib), and all else to export as Windows Executable(.exe).
+7. Select a project and run it!
