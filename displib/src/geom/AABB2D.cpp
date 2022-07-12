@@ -28,10 +28,12 @@ namespace displib {
 		return xOverlap&&yOverlap;
 	}
 
-	void AABB2D::render(Raster& gfx) {
-		gfx.drawLine((int)this->min.x, (int)this->min.y, (int)this->max.x, (int)this->min.y);
-		gfx.drawLine((int)this->max.x, (int)this->min.y, (int)this->max.x, (int)this->max.y);
-		gfx.drawLine((int)this->max.x, (int)this->max.y, (int)this->min.x, (int)this->max.y);
-		gfx.drawLine((int)this->min.x, (int)this->max.y, (int)this->min.x, (int)this->min.y);
+	void AABB2D::render(Raster& rst) {
+		V2D tr(this->max.x, this->min.y);
+		V2D bl(this->min.x, this->max.y);
+		rst.drawLine(this->min, tr);
+		rst.drawLine(tr, this->max);
+		rst.drawLine(this->max, bl);
+		rst.drawLine(bl, this->min);
 	}
 }

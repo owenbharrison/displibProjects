@@ -141,23 +141,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp" />
-    <ClCompile Include="src\shp\Shape.cpp" />
-    <ClCompile Include="src\shp\Sphere.cpp" />
-    <ClCompile Include="src\shp\Tri.cpp" />
-    <ClCompile Include="src\str\Hit.cpp" />
-    <ClCompile Include="src\str\Ray.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\displib\displib.vcxproj">
       <Project>{bf671126-3183-4804-874f-daa7db090cab}</Project>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="src\shp\Shape.h" />
-    <ClInclude Include="src\shp\Sphere.h" />
-    <ClInclude Include="src\shp\Tri.h" />
-    <ClInclude Include="src\str\Hit.h" />
-    <ClInclude Include="src\str\Ray.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

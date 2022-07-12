@@ -2,9 +2,138 @@
 
 #include "Engine.h"
 #include "maths/Maths.h"
-#include "shp/Sphere.h"
-#include "shp/Tri.h"
+#include "maths/vector/V3D.h"
 using namespace displib;
+
+struct Ray {
+	V3D origin, dir;
+
+	Ray() {}
+
+	Ray(V3D origin_, V3D dir_) {
+		origin=origin_;
+		dir=dir_;
+	}
+};
+
+struct Hit {
+	Ray ray;
+	float dist=0;
+	V3D pos, norm;
+	short col=0x000F;
+	bool reflective=false;
+
+	Hit() {};
+
+	Hit(Ray ray_, float dist_, V3D pos_, V3D norm_, short col_, bool reflective_) {
+		ray=ray_;
+		dist=dist_;
+		pos=pos_;
+		norm=norm_;
+		col=col_;
+		reflective=reflective_;
+	}
+};
+
+struct Shape {
+	short col=0x000F;
+	bool reflective=false;
+
+	Shape() {};
+
+	virtual float intersectRay(Ray r) { return 0; }
+
+	virtual bool getIntersection(Ray r, Hit& hitOut) { return false; }
+};
+
+struct Sphere : Shape {
+	V3D pos;
+	float rad=0;
+
+	Sphere(V3D& pos_, float rad_, short col_, bool reflective_) {
+		pos=pos_;
+		rad=rad_;
+		col=col_;
+		reflective=reflective_;
+	}
+
+	//adapted from https://viclw17.github.io/2018/07/16/raytracing-ray-sphere-intersection
+	float intersectRay(Ray r) override {
+		float EPSILON=0.0001f;
+		V3D oc=r.origin-pos;
+		float a=r.dir.dot(r.dir);
+		float b=2*oc.dot(r.dir);
+		float c=oc.dot(oc)-rad*rad;
+		float disc=b*b-4*a*c;
+		if (disc<EPSILON) return -1;
+		//solve quadratic, + & -
+		float sqrt=sqrtf(disc);
+		float num=-b-sqrt;
+		if (num>EPSILON) return num/(2*a);
+		num=-b+sqrt;
+		if (num>EPSILON) return num/(2*a);
+		return -1;
+	}
+
+	bool getIntersection(Ray r, Hit& hitOut) override {
+		float dist=intersectRay(r);
+		//invalid
+		if (dist<0) return false;
+
+		//use dist to march dir to hitpos
+		V3D hitPos=r.origin+r.dir*dist;
+		//to get norm of UNIFORM surface
+		V3D hitNorm=V3D::normal(hitPos-pos);
+		hitOut=Hit(r, dist, hitPos, hitNorm, col, reflective);
+		return true;
+	}
+};
+
+struct Tri : Shape {
+	V3D p[3];
+
+	Tri(V3D& a, V3D& b, V3D& c, short col_, bool reflective_) {
+		p[0]=a;
+		p[1]=b;
+		p[2]=c;
+		col=col_;
+		reflective=reflective_;
+	}
+
+	V3D getNorm() {
+		return V3D::normal((p[1]-p[0]).cross(p[2]-p[0]));
+	}
+
+	float intersectRay(Ray r) override {
+		float EPSILON=0.0001f;
+		V3D e1=p[1]-p[0];
+		V3D e2=p[2]-p[0];
+		V3D h=r.dir.cross(e2);
+		float n=e1.dot(h);
+		if (n>-EPSILON&&n<EPSILON) return -1;
+		float f=1/n;
+		V3D s=r.origin-p[0];
+		float u=f*s.dot(h);
+		if (u<0||u>1) return -1;
+		V3D q=s.cross(e1);
+		float v=f*r.dir.dot(q);
+		if (v<0||u+v>1) return -1;
+		float t=f*e2.dot(q);
+		if (t>EPSILON) return t;
+		return -1;
+	}
+
+	bool getIntersection(Ray r, Hit& hitOut) override {
+		float dist=intersectRay(r);
+		//invalid
+		if (dist<0) return false;
+
+		//use dist to march dir to hitpos
+		V3D hitPos=r.origin+r.dir*dist;
+		hitOut=Hit(r, dist, hitPos, getNorm(), col, reflective);
+		return true;
+	}
+};
 
 class Demo : public Engine {
 	public:
