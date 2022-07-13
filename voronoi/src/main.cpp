@@ -1,5 +1,3 @@
-#include <time.h>
-
 #include "Engine.h"
 #include "maths/Maths.h"
 #include "geom/AABB2D.h"
@@ -28,6 +26,8 @@ class Demo : public Engine {
 	int num=16;
 	voronoiPt* vnPts;
 	AABB2D bounds;
+	bool manhattanDistance=false;
+	bool renderFlip=false, wasRenderFlip=false;
 
 	void setup() override {
 		vnPts=new voronoiPt[num];
@@ -50,6 +50,12 @@ class Demo : public Engine {
 			vnPts[i].update(dt);
 			vnPts[i].checkAABB(bounds);
 		}
+
+		renderFlip=getKey(VK_RETURN);
+		if (renderFlip&&!wasRenderFlip) {
+			manhattanDistance=!manhattanDistance;
+		}
+		wasRenderFlip=renderFlip;
 	}
 
 	void draw(Raster& rst) override {
@@ -69,7 +75,7 @@ class Demo : public Engine {
 				for (int i=0; i<num; i++) {
 					float dx=x-vnPts[i].x;
 					float dy=y-vnPts[i].y;
-					float ds=dx*dx+dy*dy;
+					float ds=manhattanDistance?abs(dx)+abs(dy):sqrt(dx*dx+dy*dy);
 					if (ds<record) {
 						record=ds;
 						closestIx=i;
@@ -113,7 +119,7 @@ int main() {
 	srand(time(NULL));
 
 	//init custom graphics engine
-	Demo d=Demo();
+	Demo d;
 	d.startFullscreen(8);
 
 	return 0;

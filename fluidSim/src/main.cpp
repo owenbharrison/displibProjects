@@ -10,7 +10,35 @@ class Demo : public Engine {
 	int size;
 	float diff=0.001f, visc=0.001f;
 	float* u, * v, * uPrev, * vPrev, * dens, * densPrev;
-	const char* asciiArr=" .,~=#&@";
+
+	short* stressGrad=new short[8]{
+		Raster::DARK_BLUE,
+		Raster::BLUE,
+		Raster::DARK_CYAN,
+		Raster::CYAN,
+		Raster::GREEN,
+		Raster::DARK_YELLOW,
+		Raster::RED,
+		Raster::DARK_RED
+	};
+	short* tempGrad=new short[6]{
+		Raster::BLACK,
+		Raster::RED,
+		Raster::DARK_RED,
+		Raster::DARK_YELLOW,
+		Raster::YELLOW,
+		Raster::WHITE
+	};
+	short* coolGrad=new short[6]{
+		Raster::DARK_MAGENTA,
+		Raster::DARK_BLUE,
+		Raster::BLUE,
+		Raster::DARK_CYAN,
+		Raster::CYAN,
+		Raster::WHITE
+	};
+	int typeRender=1;
+
 	std::vector<V2D> mouseTrail;
 
 	int IX(int i, int j) {
@@ -18,8 +46,6 @@ class Demo : public Engine {
 	}
 
 	void setup() override {
-		setTitle("Jos Stam Fluid Sim");
-
 		size=(width+2)*(height+2);
 		u=new float[size];
 		v=new float[size];
@@ -29,12 +55,13 @@ class Demo : public Engine {
 		densPrev=new float[size];
 	}
 
-	//fluid methods
+	//fluid methods, from "http://graphics.cs.cmu.edu/nsp/course/15-464/Fall09/papers/StamFluidforGames.pdf"
 	void addSource(float* x, float* s, float dt) {
 		for (int i=0; i<size; i++) x[i]+=s[i]*dt;
 	}
 
 	void diffuse(int b, float* x, float* x0, float diff, float dt) {
+		//make each cell more similar to its neighbor
 		float a=dt*diff*width*height;
 		for (int k=0; k<iter; k++) {
 			for (int i=1; i<=width; i++) {
@@ -165,44 +192,53 @@ class Demo : public Engine {
 	}
 
 	void update(float dt) override {
-		//0.2 seconds later...
+		//for mouse dragging
 		while (mouseTrail.size()>framesPerSecond/5) {
 			mouseTrail.erase(mouseTrail.begin());
 		}
 		mouseTrail.push_back(V2D(mouseX, mouseY));
 
 		//copy dens to densPrev
-		memcpy(densPrev, dens, size*sizeof(float));
+		memcpy(densPrev, dens, sizeof(float)*size);
 		//copy u to uPrev
-		memcpy(uPrev, u, size*sizeof(float));
+		memcpy(uPrev, u, sizeof(float)*size);
 		//copy v to vPrev
-		memcpy(vPrev, v, size*sizeof(float));
+		memcpy(vPrev, v, sizeof(float)*size);
 
-		//add density
+		//user input
 		if (getKey(VK_SPACE)) {
-			//calc index
-			int i=mouseX+1;
-			int j=mouseY+1;
-			
-			//add density
-			dens[IX(i, j)]+=12*dt;
+			//check bounds
+			if (mouseX>0&&mouseY>0&&mouseX<width&&mouseY<height) {
+				//calc index
+				int i=mouseX+1;
+				int j=mouseY+1;
 
-			//add velocity
-			V2D mp=mouseTrail.at(0);
-			u[IX(i, j)]+=(mouseX-mp.x)/3;
-			v[IX(i, j)]+=(mouseY-mp.y)/3;
+				//add density
+				dens[IX(i, j)]+=12*dt;
+
+				//add velocity
+				V2D mp=mouseTrail.at(0);
+				u[IX(i, j)]+=(mouseX-mp.x)/3;
+				v[IX(i, j)]+=(mouseY-mp.y)/3;
+			}
 		}
 
+		//"drag?", or just gradual "removal of fluid", dv/dt=-cv
 		for (int i=1; i<=width; i++) {
 			for (int j=1; j<=height; j++) {
-				//drag?
-				dens[IX(i, j)]-=dens[IX(i, j)]*0.2f*dt;
+				dens[IX(i, j)]-=dens[IX(i, j)]*0.1037f*dt;
 			}
 		}
 
 		//update fluid
 		velStep(dt);
 		densStep(dt);
+
+		//which coloring scheme to use
+		for (int i=1; i<=3; i++) if (getKey(48+i)) typeRender=i;
+
+		//update title
+		setTitle("Jos Stam Fluid Sim @ "+std::to_string((int)framesPerSecond)+"fps");
 	}
 
 	void draw(Raster& rst) override {
@@ -211,17 +247,22 @@ class Demo : public Engine {
 		rst.fillRect(0, 0, width, height);
 
 		//show fluid on screen
+		rst.setChar(0x2588);
 		for (int i=1; i<=width; i++) {
 			for (int j=1; j<=height; j++) {
 				//calc pos on screen 
 				int x=i-1;
 				int y=j-1;
 
-				//use ascii ramp to light up "cell"
+				//use color ramp to show cell
 				float amt=dens[IX(i, j)];
 				float pct=amt*10;
-				int asi=Maths::clamp(pct*8, 0, 7);
-				rst.setChar(asciiArr[asi]);
+				//based on chosen scheme
+				switch (typeRender) {
+					case 1: rst.setColor(stressGrad[(int)Maths::clamp(pct*8, 0, 7)]); break;
+					case 2: rst.setColor(tempGrad[(int)Maths::clamp(pct*6, 0, 5)]); break;
+					case 3: rst.setColor(coolGrad[(int)Maths::clamp(pct*6, 0, 5)]); break;
+				}
 				rst.putPixel(x, y);
 			}
 		}
@@ -230,8 +271,8 @@ class Demo : public Engine {
 
 int main() {
 	//init custom graphics engine
-	Demo d=Demo();
-	d.startWindowed(10, 80, 45);
+	Demo d;
+	d.startWindowed(8, 108, 60);
 
 	return 0;
 }

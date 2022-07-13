@@ -1342,7 +1342,6 @@ static FILE *stbi__fopen(char const *filename, char const *mode)
    return f;
 }
 
-
 STBIDEF stbi_uc *stbi_load(char const *filename, int *x, int *y, int *comp, int req_comp)
 {
    FILE *f = stbi__fopen(filename, "rb");

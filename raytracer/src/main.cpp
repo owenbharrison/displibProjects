@@ -155,7 +155,7 @@ class Demo : public Engine {
 		return asciiArr[asi];
 	}
 
-	void dirToUV(V3D& dir, float* uOut, float* vOut) {
+	void dirToUV(V3D dir, float* uOut, float* vOut) {
 		*uOut=0.5f+atan2f(dir.x, dir.z)/Maths::TAU;
 		*vOut=0.5f-asinf(dir.y)/Maths::PI;
 	}
