@@ -6,7 +6,7 @@ This is similar in that it has simple drawing and display mechanics, and the ins
 This repository has the code of the "simulations" that I have been working on, and a release tag to run the executables in Windows.
 These projects incorporate some of my appreciation of Physics and Computer Science.
 
-# WARNING: These simulations may potentially trigger seizures for people with photosensitive epilepsy.
+WARNING: These simulations may potentially trigger seizures for people with photosensitive epilepsy.
 
 ## Win32 Usage:
 1. Download as ZIP & extract.
