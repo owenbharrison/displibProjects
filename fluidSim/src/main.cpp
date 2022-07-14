@@ -1,5 +1,3 @@
-#include <vector>
-
 #include "Engine.h"
 #include "maths/Maths.h"
 using namespace displib;
@@ -11,7 +9,7 @@ class Demo : public Engine {
 	float diff=0.001f, visc=0.001f;
 	float* u, * v, * uPrev, * vPrev, * dens, * densPrev;
 
-	short* stressGrad=new short[8]{
+	short stressGrad[8]{
 		Raster::DARK_BLUE,
 		Raster::BLUE,
 		Raster::DARK_CYAN,
@@ -21,7 +19,7 @@ class Demo : public Engine {
 		Raster::RED,
 		Raster::DARK_RED
 	};
-	short* tempGrad=new short[6]{
+	short tempGrad[6]{
 		Raster::BLACK,
 		Raster::RED,
 		Raster::DARK_RED,
@@ -29,7 +27,7 @@ class Demo : public Engine {
 		Raster::YELLOW,
 		Raster::WHITE
 	};
-	short* coolGrad=new short[6]{
+	short coolGrad[6]{
 		Raster::DARK_MAGENTA,
 		Raster::DARK_BLUE,
 		Raster::BLUE,
@@ -39,7 +37,8 @@ class Demo : public Engine {
 	};
 	int typeRender=1;
 
-	std::vector<V2D> mouseTrail;
+	float mouseTimer=0;
+	V2D mousePos, oldMousePos;
 
 	int IX(int i, int j) {
 		return i+j*(width+2);
@@ -55,7 +54,7 @@ class Demo : public Engine {
 		densPrev=new float[size];
 	}
 
-	//fluid methods, from "http://graphics.cs.cmu.edu/nsp/course/15-464/Fall09/papers/StamFluidforGames.pdf"
+	//fluid methods, from http://graphics.cs.cmu.edu/nsp/course/15-464/Fall09/papers/StamFluidforGames.pdf
 	void addSource(float* x, float* s, float dt) {
 		for (int i=0; i<size; i++) x[i]+=s[i]*dt;
 	}
@@ -192,11 +191,15 @@ class Demo : public Engine {
 	}
 
 	void update(float dt) override {
-		//for mouse dragging
-		while (mouseTrail.size()>framesPerSecond/5) {
-			mouseTrail.erase(mouseTrail.begin());
+
+		//mousetry
+		if (mouseTimer>0.075f) {
+			mouseTimer=0;
+
+			oldMousePos=mousePos;
+			mousePos=V2D(mouseX, mouseY);
 		}
-		mouseTrail.push_back(V2D(mouseX, mouseY));
+		mouseTimer+=dt;
 
 		//copy dens to densPrev
 		memcpy(densPrev, dens, sizeof(float)*size);
@@ -208,25 +211,25 @@ class Demo : public Engine {
 		//user input
 		if (getKey(VK_SPACE)) {
 			//check bounds
-			if (mouseX>0&&mouseY>0&&mouseX<width&&mouseY<height) {
+			if (mouseX>=0&&mouseY>=0&&mouseX<width&&mouseY<height) {
 				//calc index
 				int i=mouseX+1;
 				int j=mouseY+1;
 
 				//add density
-				dens[IX(i, j)]+=12*dt;
+				dens[IX(i, j)]+=15*dt;
 
 				//add velocity
-				V2D mp=mouseTrail.at(0);
-				u[IX(i, j)]+=(mouseX-mp.x)/3;
-				v[IX(i, j)]+=(mouseY-mp.y)/3;
+				V2D vel=(mousePos-oldMousePos)/2;
+				u[IX(i, j)]+=vel.x;
+				v[IX(i, j)]+=vel.y;
 			}
 		}
 
 		//"drag?", or just gradual "removal of fluid", dv/dt=-cv
 		for (int i=1; i<=width; i++) {
 			for (int j=1; j<=height; j++) {
-				dens[IX(i, j)]-=dens[IX(i, j)]*0.1037f*dt;
+				dens[IX(i, j)]-=dens[IX(i, j)]*0.0937f*dt;
 			}
 		}
 
@@ -255,13 +258,12 @@ class Demo : public Engine {
 				int y=j-1;
 
 				//use color ramp to show cell
-				float amt=dens[IX(i, j)];
-				float pct=amt*10;
+				float densPct=dens[IX(i, j)]*10;
 				//based on chosen scheme
 				switch (typeRender) {
-					case 1: rst.setColor(stressGrad[(int)Maths::clamp(pct*8, 0, 7)]); break;
-					case 2: rst.setColor(tempGrad[(int)Maths::clamp(pct*6, 0, 5)]); break;
-					case 3: rst.setColor(coolGrad[(int)Maths::clamp(pct*6, 0, 5)]); break;
+					case 1: rst.setColor(stressGrad[(int)Maths::clamp(densPct*8, 0, 7)]); break;
+					case 2: rst.setColor(tempGrad[(int)Maths::clamp(densPct*6, 0, 5)]); break;
+					case 3: rst.setColor(coolGrad[(int)Maths::clamp(densPct*6, 0, 5)]); break;
 				}
 				rst.putPixel(x, y);
 			}

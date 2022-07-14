@@ -21,7 +21,7 @@ namespace displib {
 		float framesPerSecond=0, totalDeltaTime=0;
 
 		static void showPopupBox(std::string title, std::string content) {
-			MessageBoxA(0, title.c_str(), content.c_str(), MB_OK);
+			MessageBoxA(0, content.c_str(), title.c_str(), MB_OK);
 		}
 
 		Engine();
