@@ -9,7 +9,6 @@ class Demo : public Engine {
 
 	float animTimer=0;
 	bool toggleAnim=false, wasToggleAnim=false;
-
 	short* colorArr=new short[10]{
 		Raster::DARK_RED,
 		Raster::RED,

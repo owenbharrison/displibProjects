@@ -116,11 +116,21 @@ class Demo : public Engine {
 	std::vector<barrier> barriers;
 	float timer=0;
 	float stiff, damp;
-	const char* asciiArr=" .,~=#&@";
-	bool keyDown=false;
+	bool toggleKey=false, wasToggleKey=false;
 	bool showBlob=true;
-
 	int res, cols, rows;
+
+	const char* asciiArr=" .,~=#&@";
+	short* colorArr=new short[8]{
+		Raster::DARK_BLUE,
+		Raster::BLUE,
+		Raster::DARK_CYAN,
+		Raster::CYAN,
+		Raster::GREEN,
+		Raster::DARK_YELLOW,
+		Raster::RED,
+		Raster::DARK_RED
+	};
 
 	int ix(int i, int j) {
 		return i+j*cols;
@@ -213,14 +223,11 @@ class Demo : public Engine {
 		}
 		timer+=dt;
 
-		bool switchKey=getKey(VK_RETURN);
-		if (switchKey&&!keyDown) {
-			keyDown=true;
+		toggleKey=getKey(VK_RETURN);
+		if (toggleKey&&!wasToggleKey) showBlob=!showBlob;
+		wasToggleKey=toggleKey;
 
-			showBlob=!showBlob;
-		}
-
-		if (!switchKey&&keyDown) keyDown=false;
+		setTitle("Particle Collisions w/ "+std::to_string(ptcs.size())+"ptcs @ "+std::to_string((int)framesPerSecond)+"fps");
 	}
 
 	void draw(Raster& rst) override {
@@ -228,7 +235,7 @@ class Demo : public Engine {
 		rst.setChar(' ');
 		rst.fillRect(0, 0, width, height);
 
-		//metaballs
+		//metaballs render
 		if (showBlob) {
 			rst.setChar('#');
 			bool* grid=new bool[width*height];
@@ -238,7 +245,7 @@ class Demo : public Engine {
 					float sum=0;
 					for (ptc& p:ptcs) {
 						V2D sb=V2D(x, y)-p.pos;
-						float r=p.rad*1.5f;
+						float r=p.rad*1.34f;
 						sum+=r*r/sb.dot(sb);
 					}
 					//make 0-1 float into ascii ramp value
@@ -250,17 +257,26 @@ class Demo : public Engine {
 			delete[] grid;
 		}
 		else {
-			rst.setChar('p');
-			for (ptc& p:ptcs) rst.drawCircle(p.pos, p.rad);
+			for (ptc& p:ptcs) {
+				//color based on speed
+				float pct=p.vel.mag()/6;
+				int ci=Maths::clamp(pct, 0, 7);
+				rst.setColor(colorArr[ci]);
+				//inside
+				rst.setChar('.');
+				rst.fillCircle(p.pos, p.rad);
+				//outline
+				rst.setChar('P');
+				rst.drawCircle(p.pos, p.rad);
+			}
 		}
 
 		rst.setChar('b');
+		rst.setColor(Raster::WHITE);
 		for (barrier& b:barriers) b.render(rst);
 
 		//show fps
-		rst.setColor(Raster::WHITE);
-		rst.drawString(0, 0, "FPS: "+std::to_string((int)framesPerSecond));
-		rst.drawString(0, 1, "num: "+std::to_string(ptcs.size()));
+		rst.drawString(0, 0, "num: "+std::to_string(ptcs.size()));
 	}
 };
 
@@ -269,7 +285,7 @@ int main() {
 
 	//init custom graphics engine
 	Demo d=Demo();
-	d.startFullscreen(8);
+	d.startWindowed(6, 192, 108);
 
 	return 0;
 }

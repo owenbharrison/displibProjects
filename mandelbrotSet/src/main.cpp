@@ -4,7 +4,7 @@ using namespace displib;
 
 class Demo : public Engine {
 	public:
-	int maxIter=100;
+	int maxIter=250;
 	short* colorArr=new short[8]{
 		Raster::DARK_BLUE,
 		Raster::BLUE,
@@ -15,10 +15,15 @@ class Demo : public Engine {
 		Raster::RED,
 		Raster::DARK_RED
 	};
-	float minx, miny, maxx, maxy;
+	long double minx, miny, maxx, maxy;
 	V2D scrMin, scrMax;
+
 	bool set=false, wasSet=false;
 	bool validSet;
+
+	long double map(long double x, long double a, long double b, long double c, long double d) {
+		return (x-a)*(d-c)/(b-a)+c;
+	}
 
 	void setup() override {
 		minx=-2, miny=-1.5f, maxx=1, maxy=1.5f;
@@ -39,16 +44,16 @@ class Demo : public Engine {
 		validSet=(scrMax.x>scrMin.x&&scrMax.y>scrMin.y);
 
 		//for bound setting
-		set=getKey(VK_RETURN);
+		set=getKey(' ');
 		if (set&&!wasSet) {
 			if (validSet) {
-				float newminx=Maths::map(scrMin.x, 0, width, minx, maxx);
-				float newmaxx=Maths::map(scrMax.x, 0, width, minx, maxx);
+				long double newminx=map(scrMin.x, 0, width, minx, maxx);
+				long double newmaxx=map(scrMax.x, 0, width, minx, maxx);
 				minx=newminx;
 				maxx=newmaxx;
 
-				float newminy=Maths::map(scrMin.y, 0, height, miny, maxy);
-				float newmaxy=Maths::map(scrMax.y, 0, height, miny, maxy);
+				long double newminy=map(scrMin.y, 0, height, miny, maxy);
+				long double newmaxy=map(scrMax.y, 0, height, miny, maxy);
 				miny=newminy;
 				maxy=newmaxy;
 				
@@ -69,32 +74,42 @@ class Demo : public Engine {
 		rst.setChar(' ');
 		rst.fillRect(0, 0, width, height);
 
-		//show set
+		//get set values
+		int minVal=maxIter+1, maxVal=-1;
+		int* values=new int[width*height]; 
 		for (int x=0; x<width; x++) {
 			for (int y=0; y<height; y++) {
-				float a=Maths::map(x, 0, width, minx, maxx);
-				float b=Maths::map(y, 0, height, miny, maxy);
-				float ca=a;
-				float cb=b;
+				long double a=map(x, 0, width, minx, maxx);
+				long double b=map(y, 0, height, miny, maxy);
+				long double ca=a;
+				long double cb=b;
 
 				//the iterations
-				float z=0;
+				long double z=0;
 				int n;
-				for(n=0;n<maxIter;n++){
-					float asq=a*a-b*b;
-					float bb=2*a*b;
+				for (n=0; n<maxIter; n++) {
+					long double asq=a*a-b*b;
+					long double bb=2*a*b;
 					a=asq+ca;
 					b=bb+cb;
-					if (a*a+b*b>16) {
-						break;
-					}
+					if (a*a+b*b>16) break;
 				}
-				
+				minVal=min(n, minVal);
+				maxVal=max(n, maxVal);
+				values[x+y*width]=n;
+			}
+		}
+
+		//fix set values and show them
+		for (int x=0; x<width; x++) {
+			for (int y=0; y<height; y++) {
+				int n=values[x+y*width];
 				//int to 0-1 bright val
-				float pct=n/(float)maxIter;
+				long double pct=map(n, minVal, maxVal, 0, 1);
 				//some lighting fix
-				pct=sqrt(pct);
-				int csi=Maths::clamp(pct*8, 0, 7);
+				pct=sqrtl(pct);
+				//clamp
+				int csi=min(pct*8, 7);
 				//if it reached, make it dark
 				rst.setChar(n==maxIter?' ':0x2588);
 				//coloring
@@ -102,6 +117,7 @@ class Demo : public Engine {
 				rst.putPixel(x, y);
 			}
 		}
+		delete[] values;
 
 		//show box
 		rst.setColor(Raster::WHITE);
