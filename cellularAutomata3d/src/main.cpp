@@ -214,7 +214,7 @@ class Demo : public Engine {
 		timer+=dt;
 
 		//update title
-		setTitle("3D Automata @ "+std::to_string((int)framesPerSecond));
+		setTitle("3D Automata @ "+std::to_string((int)framesPerSecond)+"fps");
 	}
 
 	void draw(Raster& rst) override {

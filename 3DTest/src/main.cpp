@@ -70,7 +70,7 @@ struct mesh {
 			if (line.find("f ")!=std::string::npos) {
 				//find all indexes
 				std::vector<int> indexes;
-				for (std::sregex_iterator iter=std::sregex_iterator(line.begin(), line.end(), indexRegex); iter!=std::sregex_iterator(); iter++) {
+				for (auto iter=std::sregex_iterator(line.begin(), line.end(), indexRegex); iter!=std::sregex_iterator(); iter++) {
 					std::smatch match;
 					match=*iter;
 					indexes.push_back(stoi(match.str(1))-1);
@@ -84,15 +84,15 @@ struct mesh {
 
 		//center vtxs about (0, 0, 0)
 		float3 modelMid((nx+mx)/2, (ny+my)/2, (nz+mz)/2);
-		for (float3& v:vtxs) v-=modelMid;
+		for (auto& v:vtxs) v-=modelMid;
 
 		//get biggest dimension, in one dir (so on 2)
 		float maxDim=max(mx-nx, max(my-ny, mz-nz))/2;
 		//divide by that, "normalize"?
-		for (float3& v:vtxs) v/=maxDim;
+		for (auto& v:vtxs) v/=maxDim;
 
 		//use real tri ix info
-		for (triIndex& tIx:tIxs) tris.push_back({vtxs[tIx.a], vtxs[tIx.b], vtxs[tIx.c]});
+		for (auto& tIx:tIxs) tris.push_back({vtxs[tIx.a], vtxs[tIx.b], vtxs[tIx.c]});
 		return true;
 	}
 };
@@ -175,7 +175,7 @@ class Demo : public Engine {
 
 		//"optimization" show only front facing tris
 		std::vector<tri> trisToDraw;
-		for (tri& t:mainMesh.tris) {
+		for (auto& t:mainMesh.tris) {
 			//culling
 			if (dot(t.getNorm(), t.a-camPos)<0) {
 				trisToDraw.push_back(t);
@@ -188,7 +188,7 @@ class Demo : public Engine {
 		});
 
 		//"project" tris
-		for (tri& t:trisToDraw) {
+		for (auto& t:trisToDraw) {
 			float3 tPos=t.getAvgPos();
 			float3 tNorm=t.getNorm();
 			//diffuse is norm vs lightdir, "direct lighting"

@@ -63,10 +63,10 @@ class Demo : public Engine {
 			for (int y=0; y<height; y++) {
 				nodeGrid[ix(x, y)]=node(pt(x, y));
 
-				float dx=x-width/2;
-				float dy=y-height/2;
+				int dx=x-width/2;
+				int dy=y-height/2;
 				float dist=sqrtf(dx*dx+dy*dy);
-				if (dist<width/3) nodeGrid[ix(x, y)].walkable=false;
+				if (dist<width*.33f) nodeGrid[ix(x, y)].walkable=false;
 			}
 		}
 		//init each node's neighborhood
@@ -180,7 +180,7 @@ class Demo : public Engine {
 				}
 
 				//foreach neighbor of the curr node
-				for (node* n:currNode->neighbors) {
+				for (auto n:currNode->neighbors) {
 					//if neighbor is NOT walkable OR neighbor is in CLOSED
 					auto nInClosed=find(closedSet.begin(), closedSet.end(), n);
 					if (!n->walkable||nInClosed!=closedSet.end()) {
@@ -229,19 +229,19 @@ class Demo : public Engine {
 		//draw all in open
 		rst.setChar(0x2588);
 		rst.setColor(Raster::GREEN);
-		for (node* n:openSet) {
+		for (const auto n:openSet) {
 			rst.putPixel(n->pos.x, n->pos.y);
 		}
 
 		//draw all in closed
 		rst.setColor(Raster::RED);
-		for (node* n:closedSet) {
+		for (const auto n:closedSet) {
 			rst.putPixel(n->pos.x, n->pos.y);
 		}
 
 		//draw path
 		rst.setColor(Raster::BLUE);
-		for (node* n:path) {
+		for (const auto n:path) {
 			rst.putPixel(n->pos.x, n->pos.y);
 		}
 

@@ -42,7 +42,7 @@ class Demo : public Engine {
 
 int main() {
 	//init custom graphics engine
-	Demo d=Demo();
+	Demo d;
 	d.startWindowed(2, 720, 405);
 
 	return 0;

@@ -10,10 +10,7 @@ struct ptc {
 	float2 pos, oldpos, vel, acc;
 	float rad;
 
-	ptc(float2 pos_, float rad_) {
-		pos=pos_;
-		rad=rad_;
-	}
+	ptc(float2 pos, float rad) : pos(pos), rad(rad){}
 
 	void update(float dt) {
 		oldpos=pos;
@@ -150,9 +147,10 @@ class Demo : public Engine {
 		damp=6.23f;
 	}
 
+	float lastDeltaTime=0;
 	void update(float dt) override {
 		showConnections=getKey('C');
-		if(showConnections) connections.clear();
+		if (showConnections) connections.clear();
 
 		//check mouse for barrier movement
 		float2 mousePos(mouseX, mouseY);
@@ -174,7 +172,7 @@ class Demo : public Engine {
 		//for each particle
 		for (int i=0; i<ptcs.size(); i++) {
 			ptc& a=ptcs.at(i);
-			//check all of the particles AFTER it
+			//check all of OTHER the particles AFTER it
 			for (int j=i+1; j<ptcs.size(); j++) {
 				ptc& b=ptcs.at(j);
 				//if touching optimization [aabb overlap]
@@ -218,10 +216,15 @@ class Demo : public Engine {
 			//euler explicit
 			p.update(dt);
 
-			//if in width and too low respawn
-			if (p.pos.x>0&&p.pos.x<width&&p.pos.y>height) p.pos.y=0;
-			//if out of width
-			if (p.pos.x<0||p.pos.x>width) { p.vel.x=0; p.pos.x=width/2; }
+			//in width?
+			if (p.pos.x>0&&p.pos.x<width) {
+				//too low? respawn.
+				if (p.pos.y>height) p.pos.y=0;
+			}
+			else {
+				p.vel.x=0;
+				p.pos.x=width/2;
+			}
 		}
 
 		//to start, spawn particles every so often
@@ -239,6 +242,8 @@ class Demo : public Engine {
 		wasToggleKey=toggleKey;
 
 		setTitle("Particle Collisions w/ "+std::to_string(ptcs.size())+"ptcs @ "+std::to_string((int)framesPerSecond)+"fps");
+
+		lastDeltaTime=dt;
 	}
 
 	void draw(Raster& rst) override {

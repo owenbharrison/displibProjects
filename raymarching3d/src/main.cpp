@@ -1,3 +1,5 @@
+//credit to iq for sdfs.
+
 #include <vector>
 
 #include "Engine.h"
@@ -279,7 +281,7 @@ class Demo : public Engine {
 int main() {
 	//init custom graphics engine
 	Demo d=Demo();
-	d.startWindowed(6, 160, 90);
+	d.startFullscreen(8);
 
 	return 0;
 }

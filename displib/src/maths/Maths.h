@@ -9,8 +9,11 @@ namespace displib {
 		public:
 		static const float PI, TAU, E;
 
-		//returns value t "percent(0-1)" between a and b.
+		//returns value "percent(0-1)" between a and b.
 		static float lerp(float t, float a, float b);
+
+		//returns "percent(0-1)" that t is between a and b.
+		static float invLerp(float v, float a, float b);
 
 		//maps one range to another, linearly.
 		static float map(float t, float a, float b, float c, float d);

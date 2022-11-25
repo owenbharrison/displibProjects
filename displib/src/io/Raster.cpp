@@ -266,10 +266,10 @@ namespace displib {
 	void Raster::fillCircle(float2 v, float r) { this->fillCircle(v.x, v.y, r); }
 
 	void Raster::_drawRect(int x, int y, int w, int h) {
-		for (int i=1; i<w; i++) this->_putPixel(x+i, y);
-		for (int i=1; i<h; i++) this->_putPixel(x+w-1, y+i);
-		for (int i=w-1; i>=0; i--) this->_putPixel(x+i, y+h-1);
-		for (int i=h-1; i>=0; i--) this->_putPixel(x, y+i);
+		this->_drawLine(x, y, x+w-1, y);
+		this->_drawLine(x+w-1, y, x+w-1, y+h-1);
+		this->_drawLine(x+w-1, y+h-1, x, y+h-1);
+		this->_drawLine(x, y+h-1, x, y);
 	}
 	void Raster::drawRect(float x, float y, float w, float h) { this->_drawRect(round(x), round(y), round(w), round(h)); }
 	void Raster::drawRect(float2 v, float w, float h) { this->drawRect(v.x, v.y, w, h); }
@@ -288,7 +288,7 @@ namespace displib {
 	void Raster::_drawString(int x_, int y, std::string str) {
 		int x=x_;
 		wchar_t cCh=this->currChar.Char.UnicodeChar;
-		for (auto ch:str) {
+		for (auto ch:str) { 
 			this->setChar(ch);
 			this->_putPixel(x, y);
 			x++;

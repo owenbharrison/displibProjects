@@ -544,7 +544,7 @@ class Demo : public Engine {
 			for (int i=0; i<asteroids.size(); i++) {
 				Asteroid& a=asteroids.at(i);
 				//show at top right
-				std::string posStr="[x:"+std::to_string(a.pos.x)+", y: "+std::to_string(a.pos.y)+"]";
+				std::string posStr="[x:"+std::to_string((int)a.pos.x)+", y: "+std::to_string((int)a.pos.y)+"]";
 				std::string str=std::to_string(i)+": [p: "+posStr+", n: "+std::to_string(a.numPts)+", r: "+std::to_string((int)a.rad)+"]";
 				rst.drawString(width-str.length(), i+1, str);
 			}

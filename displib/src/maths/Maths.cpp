@@ -12,6 +12,10 @@ namespace displib {
 		return a+(b-a)*t;
 	}
 
+	float Maths::invLerp(float v, float a, float b) {
+		return (v-a)/(b-a);
+	}
+
 	float Maths::map(float x, float a, float b, float c, float d) {
 		return (x-a)*(d-c)/(b-a)+c;
 	}

@@ -1,5 +1,3 @@
-#include <cmath>
-
 #include "float3.h"
 
 namespace displib {
